@@ -1,0 +1,220 @@
+{
+  "main": {
+    "id": "279f9e0fd9551585",
+    "type": "split",
+    "children": [
+      {
+        "id": "edd722f346336738",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2247132deff29ee0",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Ideas.md",
+                "mode": "source",
+                "backlinks": false,
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "0cc22559d0ae9b22",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Mechanics.md",
+                "mode": "source",
+                "backlinks": false,
+                "source": false
+              }
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e4d09515265d41e2",
+    "type": "split",
+    "children": [
+      {
+        "id": "52de8e60fa594d9e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1cd9570708b3b721",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "364b52f8b69a3a14",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "10a564ffdbd1a4b6",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "338a7524c5b073c3",
+    "type": "split",
+    "children": [
+      {
+        "id": "48b50a08b3301d33",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b4adc994700ea49e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Mechanics.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "95fbff7e678ca0ef",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Mechanics.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "352757cbc4aaae20",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "0c9ab4c73e3cfa2b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Mechanics.md"
+              }
+            }
+          },
+          {
+            "id": "531f476fe53b9a0c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "audio-recorder:Start/stop recording": false,
+      "markdown-importer:Open format converter": false,
+      "obsidian-excalidraw-plugin:Create new drawing": false
+    }
+  },
+  "active": "0cc22559d0ae9b22",
+  "lastOpenFiles": [
+    "Theme.md",
+    "Mechanics.md",
+    "Lore.md",
+    "Plan.md",
+    "Ideas.md",
+    "Plan.txt",
+    "Plan - Copy.md",
+    "Excalidraw/Drawing 2024-05-16 17.30.33.excalidraw.md",
+    "Excalidraw",
+    "Computer Science/Computing Index.md",
+    "Test.md",
+    "nodestination.md",
+    "Computer Science/Data Structures/Stacks.md",
+    "Computer Science/Test.md",
+    "Index.md",
+    "Computer Science/IOS/Secondary Storage.md",
+    "Mathematics/Large Data Set/Overall Info.md",
+    "Mathematics/Maths Index.md",
+    "Computer Science/System Software/Operating System.md",
+    "Mathematics/Large Data Set/Variables.md",
+    "Recording 20240401210104.webm",
+    "Mathematics/Large Data Set",
+    "Physics/Physics Index.md",
+    "Physics/Arrays-Lists-Tuples-Records.md",
+    "Physics/Mechanics/Momentum.md",
+    "Physics/Mechanics",
+    "Physics",
+    "Mathematics/Large Data Set/UK Locations.png",
+    "Mathematics/Large Data Set/Ranges.md",
+    "Mathematics/Large Data Set/International Locations.png",
+    "Mathematics",
+    "Computer Science/Data Structures/Arrays-Lists-Tuples-Records.md",
+    "Computer Science/IOS/Primary Storage.md",
+    "Computer Science/IOS/Input Output.md",
+    "Computer Science/System Software",
+    "Computer Science/Data Structures",
+    "Computer Science/IOS",
+    "Welcome.md"
+  ]
+}
