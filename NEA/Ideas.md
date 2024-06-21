@@ -25,6 +25,13 @@ Survival
 Idle
 VR
 
+## Other Ideas
+
+Autocorrect
+Game engine
+Own programming language
+Security system
+
 ## Engines/Languages
 
 Unity - C#

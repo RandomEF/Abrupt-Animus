@@ -700,6 +700,7 @@ MonoBehaviour:
   velocity: {x: 0, y: 0, z: 0}
   horizontalVelocity: {x: 0, y: 0}
   inputDirection: {x: 0, y: 0}
+  preBoostVelocity: 0
   overflowReductionMultiplier: 0.8
   speedCapToDisableOverflow: 300
   movementAcceleration: 2
@@ -824,7 +825,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 938736872}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 35829a9ddb53d3f4e97ee1a2d6e4c206, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

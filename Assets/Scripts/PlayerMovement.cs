@@ -17,12 +17,13 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpForce = 3.5f;
 
     [Header("Movement")]
-    [SerializeField] private PlayerMovementState movementState;
+    [SerializeField] public PlayerMovementState movementState;
     [SerializeField] private float friction = 0.8f;
     [SerializeField] private float drag = 0.1f;
     [SerializeField] private Vector3 velocity;
     [SerializeField] private Vector2 horizontalVelocity;
     [SerializeField] private Vector2 inputDirection;
+    [SerializeField] private float preBoostVelocity;
     [SerializeField] private float overflowReductionMultiplier = 0.8f;
     [SerializeField] private float speedCapToDisableOverflow = 300f;
     [SerializeField] private float movementAcceleration = 2f;
@@ -35,7 +36,7 @@ public class PlayerMovement : MonoBehaviour
     private PlayerInputs playerInputs; // Use if using the C# Class
     // private PlayerInput playerInput; // Use if using the Unity Interface
 
-    enum PlayerMovementState
+    public enum PlayerMovementState
     {
         idle,
         crouched,
@@ -61,7 +62,7 @@ public class PlayerMovement : MonoBehaviour
     private void Update() {
         velocity = player.velocity;
         horizontalVelocity = new Vector2(player.velocity.x, player.velocity.z);
-        if (Mathf.Abs(horizontalVelocity.magnitude) < maxWalkSpeed - 1 && movementState == PlayerMovementState.boosting){
+        if ((horizontalVelocity.magnitude < preBoostVelocity - 1 && horizontalVelocity.magnitude < maxWalkSpeed) && movementState == PlayerMovementState.boosting){
             movementState = PlayerMovementState.walking;
         }
         if (velocity == Vector3.zero){
@@ -70,7 +71,6 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = GroundCheck();
         Gravity();
         Movement();
-        horizontalVelocity *= FrictionMultiplier();
         horizontalVelocity = ClampSpeed();
         velocity = new Vector3(horizontalVelocity.x, velocity.y, horizontalVelocity.y);
         player.AddForce(velocity - player.velocity, ForceMode.VelocityChange);
@@ -113,7 +113,6 @@ public class PlayerMovement : MonoBehaviour
         switch (movementState){
             case PlayerMovementState.walking:
                 float clampedMagnitude = Vector2.ClampMagnitude(horizontalVelocity, maxWalkSpeed).magnitude;
-                Debug.Log(clampedMagnitude);
                 return SpeedFunction(clampedMagnitude, 0.5f, 20);
             default:
                 return 1;
@@ -133,6 +132,8 @@ public class PlayerMovement : MonoBehaviour
             Vector3 lerpedVelocity = Vector3.Slerp(directedVelocity, multipliedVelocity, alignment);
             horizontalVelocity += new Vector2(lerpedVelocity.x, lerpedVelocity.y);
             //player.AddForce(new Vector3(inputDirection.x, 0, inputDirection.y) * movementAcceleration * speedMultiplier * Time.deltaTime, ForceMode.Impulse);
+        } else {
+            horizontalVelocity *= FrictionMultiplier();
         }
     }
     private void Jump(InputAction.CallbackContext inputType){
@@ -142,6 +143,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Boost(InputAction.CallbackContext inputType){
         movementState = PlayerMovementState.boosting;
+        preBoostVelocity = velocity.magnitude;
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
         Vector2 horizontalMovement = horizontalVelocity.normalized;
         if (inputDirection.x != 0) {

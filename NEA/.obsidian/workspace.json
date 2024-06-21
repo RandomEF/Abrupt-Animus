@@ -26,7 +26,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Mechanics.md",
+                "file": "Ideas.md",
                 "mode": "source",
                 "backlinks": false,
                 "source": false
@@ -100,7 +100,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Mechanics.md",
+                "file": "Ideas.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -117,7 +117,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Mechanics.md",
+                "file": "Ideas.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -140,7 +140,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Mechanics.md"
+                "file": "Ideas.md"
               }
             }
           },
@@ -179,9 +179,9 @@
   "active": "0cc22559d0ae9b22",
   "lastOpenFiles": [
     "Theme.md",
-    "Mechanics.md",
     "Lore.md",
     "Plan.md",
+    "Mechanics.md",
     "Ideas.md",
     "Plan.txt",
     "Plan - Copy.md",
