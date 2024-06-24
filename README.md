@@ -31,6 +31,7 @@ This is a movement-based FPS game, where the aim of the game is to manage your m
 <details open>
 <summary><h3>Quick links</h3></summary>
 
+- [Builds](<Builds/>)
 - [Assets](<Assets/>)
 - [Scripts](<Assets/Scripts/>)
 - [Models](<Assets/Models/>)

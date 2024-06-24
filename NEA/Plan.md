@@ -14,6 +14,7 @@ Wallrunning
 	Make sure to align to wall normal for curved walls
 Vault
 Grapple
+	Use grapple points
 Double Jump
 Coyote Time
 Pogo

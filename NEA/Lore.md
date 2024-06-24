@@ -1,4 +1,4 @@
-You are not the main character
+ You are not the main character
 	Aid to the actual main character
 The main character is idolised as a hero within the country/empire, but this is all just government propaganda and teaching immoral concepts as 'good' to the public.
 Outside of the country/empire, the main character is the greatest villain, committing unspeakable acts

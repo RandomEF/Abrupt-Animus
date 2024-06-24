@@ -41,7 +41,7 @@ Unreal - C++
 	Must completely learn
 	Must also learn C++
 	Very useful later on
-Godot - Godot Script
+Godot - GDScript
 	Must completely learn
 	Apparently very similar to Python
 	May be useful later on
@@ -53,3 +53,11 @@ RPG Maker
 	Useful for RPG (obvs)
 Be an absolute joke
 	Do assembly
+
+## Overall Idea Map
+
+| Idea                          | Short explanation                                                                    | Complexity                                                                                                                                                                               | Language                                       | Computational methods                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Movement first-person-shooter | A game where the player must simultaneously manage their momentum and there aim      | Medium - ample use of math and GUI. Movement must be fine-tuned along with movement based bug fixes. Player physics, and bullet physics, enemy AI, and modular interconnected components | C#, C++, GDScript, Python, easier with engines | OOP, database, modular design, abstraction for the GUI                                 |
+| Game engine                   | An application designed to help and aid someone in the creation of game or other app | Very - lots of math, OOP, GUI, implementing a physics engine, along with functionality for any component, must include compilers and built in libraries to assist in building the game   | C#, C++                                        | OOP, decomposition of functions                                                        |
+| Programming language          | Writing a language and run it either being compiled, or to interpreted               | Easy - filled with mainly trees and if statements, and exception raising, must have built in functions, handle memory and add basic data structures                                      | C#, C++, CPython                               | Selection, trees, decomposition and modular design for different parts of the compiler |

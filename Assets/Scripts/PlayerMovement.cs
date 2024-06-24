@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public GameObject manager;
+    private PlayerInputs playerInputs; // Use if using the C# Class
+    // private PlayerInput playerInput; // Use if using the Unity Interface
+
     [Header("Character Dimensions")]
     [SerializeField] public float playerHeight = 1.7f;
     [SerializeField] public float radius = 0.5f;
@@ -24,17 +28,16 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Vector2 horizontalVelocity;
     [SerializeField] private Vector2 inputDirection;
     [SerializeField] private float preBoostVelocity;
-    [SerializeField] private float overflowReductionMultiplier = 0.8f;
-    [SerializeField] private float speedCapToDisableOverflow = 300f;
     [SerializeField] private float movementAcceleration = 2f;
     [SerializeField] private float boostMultiplier = 10f;
-    [SerializeField] private float maxWalkSpeed = 5f; // Usain Bolt speeds, average human pace is a quarter of this
-    [SerializeField] private float maxSprintSpeed = 10f; // Usain Bolt speeds, average human pace is a quarter of this
+
+    [Header("Speed Caps")]
+    [SerializeField] private float maxWalkSpeed = 7.5f;
+    [SerializeField] private float maxSprintSpeed = 20f;
+    [SerializeField] private float maxBoostSpeed;
 
     private Rigidbody player;
     private CapsuleCollider playerCollider;
-    private PlayerInputs playerInputs; // Use if using the C# Class
-    // private PlayerInput playerInput; // Use if using the Unity Interface
 
     public enum PlayerMovementState
     {
@@ -52,8 +55,8 @@ public class PlayerMovement : MonoBehaviour
         playerCollider = GetComponent<CapsuleCollider>();
         player.transform.localScale = new Vector3(radius/playerCollider.radius, playerHeight/playerCollider.height, radius/playerCollider.radius);
 
-        playerInputs = new PlayerInputs();
-        playerInputs.Player.Enable(); // Enabling only the Player input map
+        playerInputs = manager.GetComponent<PlayerManager>().inputs;
+
         playerInputs.Player.Jump.performed += Jump;
         playerInputs.Player.Boost.performed += Boost;
 
@@ -62,8 +65,10 @@ public class PlayerMovement : MonoBehaviour
     private void Update() {
         velocity = player.velocity;
         horizontalVelocity = new Vector2(player.velocity.x, player.velocity.z);
-        if ((horizontalVelocity.magnitude < preBoostVelocity - 1 && horizontalVelocity.magnitude < maxWalkSpeed) && movementState == PlayerMovementState.boosting){
+        if (horizontalVelocity.magnitude < preBoostVelocity - 1 && horizontalVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting){
             movementState = PlayerMovementState.walking;
+        } else if (horizontalVelocity.magnitude < preBoostVelocity - 1 && horizontalVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting){
+            movementState = PlayerMovementState.sprinting;
         }
         if (velocity == Vector3.zero){
             movementState = PlayerMovementState.idle;
@@ -99,6 +104,10 @@ public class PlayerMovement : MonoBehaviour
         switch (movementState){
             case PlayerMovementState.walking:
                 return Vector2.ClampMagnitude(horizontalVelocity, maxWalkSpeed);
+            case PlayerMovementState.sprinting:
+                return Vector2.ClampMagnitude(horizontalVelocity, maxSprintSpeed);
+            case PlayerMovementState.boosting:
+                return Vector2.ClampMagnitude(horizontalVelocity, maxBoostSpeed);
             default:
                 return horizontalVelocity;
         }
@@ -110,10 +119,16 @@ public class PlayerMovement : MonoBehaviour
         return -(Pow4(speed/a)/(b*b*b))+b;
     }
     private float CalculateAccelerationMultiplier(){
+        float clampedMagnitude;
         switch (movementState){
             case PlayerMovementState.walking:
-                float clampedMagnitude = Vector2.ClampMagnitude(horizontalVelocity, maxWalkSpeed).magnitude;
-                return SpeedFunction(clampedMagnitude, 0.5f, 20);
+                clampedMagnitude = Vector2.ClampMagnitude(horizontalVelocity, maxWalkSpeed).magnitude;
+                return SpeedFunction(clampedMagnitude, 0.75f, 10);
+            case PlayerMovementState.sprinting:
+                clampedMagnitude = Vector2.ClampMagnitude(horizontalVelocity, maxSprintSpeed).magnitude;
+                return SpeedFunction(clampedMagnitude, 1, 15f);
+            case PlayerMovementState.boosting:
+                return 0;
             default:
                 return 1;
         }
@@ -123,15 +138,18 @@ public class PlayerMovement : MonoBehaviour
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
         if (inputDirection.magnitude != 0) {
             if (movementState != PlayerMovementState.boosting){
-                movementState = PlayerMovementState.walking;
+                if (playerInputs.Player.Sprint.inProgress){
+                    movementState = PlayerMovementState.sprinting;
+                } else {
+                    movementState = PlayerMovementState.walking;
+                }
             }
             float speedMultiplier = CalculateAccelerationMultiplier();
-            Vector3 multipliedVelocity = new Vector2(inputDirection.x, inputDirection.y) * movementAcceleration * speedMultiplier * Time.deltaTime;
-            Vector3 directedVelocity = new Vector2(inputDirection.x, inputDirection.y) * movementAcceleration * 20 * Time.deltaTime;
+            Vector3 multipliedVelocity = new Vector3(inputDirection.x, 0, inputDirection.y) * movementAcceleration * speedMultiplier * Time.deltaTime;
+            Vector3 directedVelocity = new Vector3(inputDirection.x, 0, inputDirection.y) * movementAcceleration * 20 * Time.deltaTime;
             float alignment = Vector3.Dot(player.velocity.normalized, directedVelocity.normalized);
-            Vector3 lerpedVelocity = Vector3.Slerp(directedVelocity, multipliedVelocity, alignment);
-            horizontalVelocity += new Vector2(lerpedVelocity.x, lerpedVelocity.y);
-            //player.AddForce(new Vector3(inputDirection.x, 0, inputDirection.y) * movementAcceleration * speedMultiplier * Time.deltaTime, ForceMode.Impulse);
+            Vector3 lerpedVelocity = player.rotation * Vector3.Slerp(directedVelocity, multipliedVelocity, alignment);
+            horizontalVelocity += new Vector2(lerpedVelocity.x, lerpedVelocity.z);
         } else {
             horizontalVelocity *= FrictionMultiplier();
         }
@@ -143,16 +161,11 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Boost(InputAction.CallbackContext inputType){
         movementState = PlayerMovementState.boosting;
-        preBoostVelocity = velocity.magnitude;
+        preBoostVelocity = velocity.magnitude < 1 ? 1 : velocity.magnitude;
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
-        Vector2 horizontalMovement = horizontalVelocity.normalized;
-        if (inputDirection.x != 0) {
-            horizontalMovement.x = Mathf.Abs(horizontalMovement.x) * Mathf.Sign(inputDirection.x);
-        }
-        if (inputDirection.y != 0){
-            horizontalMovement.y = Mathf.Abs(horizontalMovement.y) * Mathf.Sign(inputDirection.y);
-        }
-        velocity += new Vector3(horizontalMovement.x, 0, horizontalMovement.y) * boostMultiplier;
-        //player.AddForce(new Vector3(horizontalMovement.x, 0, horizontalMovement.y) * boostMultiplier, ForceMode.VelocityChange);
+        Vector2 horizontalMovement = inputDirection * horizontalVelocity.magnitude * (boostMultiplier - 1);
+        Vector3 movement = player.rotation * new Vector3(horizontalMovement.x, 0, horizontalMovement.y);
+        maxBoostSpeed = (velocity + movement).magnitude;
+        player.AddForce(movement, ForceMode.VelocityChange);
     }
 }

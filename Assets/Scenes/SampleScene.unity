@@ -421,7 +421,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.352941, z: -10}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1.1764705, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -480,11 +480,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98e68f6a152f1024fac9e399aa80b0db, type: 3}
+  m_Script: {fileID: 11500000, guid: 85208ab34d73fb440b38ad1cd50a9eb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 938736882}
-  playerObj: {fileID: 938736872}
+  manager: {fileID: 569969866}
+  playerBody: {fileID: 938736882}
+  mouseSensitivity: 1
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -602,6 +603,50 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 1
+--- !u!1 &569969866
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 569969868}
+  - component: {fileID: 569969867}
+  m_Layer: 0
+  m_Name: Game Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &569969867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569969866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e013c50ca015db4f9f750ade20d2492, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &569969868
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569969866}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -685,6 +730,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5501ab2e8b7cde64b88dd4ed8a201c90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  manager: {fileID: 569969866}
   playerHeight: 1.7
   radius: 0.5
   isGrounded: 0
@@ -701,12 +747,11 @@ MonoBehaviour:
   horizontalVelocity: {x: 0, y: 0}
   inputDirection: {x: 0, y: 0}
   preBoostVelocity: 0
-  overflowReductionMultiplier: 0.8
-  speedCapToDisableOverflow: 300
   movementAcceleration: 2
-  boostMultiplier: 100
-  maxWalkSpeed: 10
-  maxSprintSpeed: 10
+  boostMultiplier: 2
+  maxWalkSpeed: 7.5
+  maxSprintSpeed: 15
+  maxBoostSpeed: 0
 --- !u!23 &938736876
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -813,6 +858,14 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 60d4f076-fde1-47e7-b8c5-839cff8edc42
     m_ActionName: 'Player/Boost[/Keyboard/leftShift,/XInputControllerWindows/leftStickPress]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: c006001d-ecab-4e60-9475-409ddf247ab6
+    m_ActionName: 'Player/Sprint[/Keyboard/leftShift]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ca8e44d1-f861-4703-a191-e95ceab77726
+    m_ActionName: 'Player/Look[/Mouse/delta]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -1202,3 +1255,4 @@ SceneRoots:
   - {fileID: 90223192}
   - {fileID: 141765253}
   - {fileID: 1660727912}
+  - {fileID: 569969868}

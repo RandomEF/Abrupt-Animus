@@ -13,6 +13,9 @@ The player can pick up the weapons of enemies
 
 Level access is done with a hub system similar to Doom Eternal and Donkey Kong 64
 	Will be transported to a cyberspace to select the level
+
+Character Creation
+Throwback Grenades
 ## Scoring
 
 Each level is scored based on:

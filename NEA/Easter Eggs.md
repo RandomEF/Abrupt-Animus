@@ -1,0 +1,2 @@
+Egg
+Default Walking animation
