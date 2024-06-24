@@ -11,12 +11,12 @@ This is a movement-based FPS game, where the aim of the game is to manage your m
 
 - WASD movement
 - Jumping
-- Boost key
+- Boost
+- Mouse movement/FPS camera
+- Sprinting
 
 ## **To do**
 
-- Mouse movement/FPS camera
-- Sprinting
 - Crouching
 - Wallrunning
 - Animations
