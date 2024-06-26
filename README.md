@@ -14,10 +14,10 @@ This is a movement-based FPS game, where the aim of the game is to manage your m
 - Boost
 - Mouse movement/FPS camera
 - Sprinting
+- Crouching (both hold and toggle)
 
 ## **To do**
 
-- Crouching
 - Wallrunning
 - Animations
 - Character models
