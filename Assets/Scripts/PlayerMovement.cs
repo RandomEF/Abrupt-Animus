@@ -27,7 +27,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     [SerializeField] public PlayerMovementState movementState;
     [SerializeField] public PlayerMovementState lastMovementState = PlayerMovementState.idle;
-    [SerializeField] private float stoppingFriction = 1.1f;
     [SerializeField] private float friction = 0.9f;
     [SerializeField] private float drag = 0.01f;
     [SerializeField] private Vector3 velocity;
@@ -79,7 +78,7 @@ public class PlayerMovement : MonoBehaviour
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
         bool crouching = CrouchControlState();
 
-        isGrounded = GroundCheck();
+        //isGrounded = GroundCheck();
         SetMovementState(crouching);
         Crouch();
         Gravity();
@@ -100,7 +99,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     private void SetPlayerDimensions(float height, float radius){
+        float previousHeight = player.transform.localScale.y * playerCollider.height;
         player.transform.localScale = new Vector3(radius/playerCollider.radius, height/playerCollider.height, radius/playerCollider.radius);
+        player.transform.position -= new Vector3(0, (previousHeight - height)/2, 0);
     }
     private bool CrouchControlState(){
         holdCrouch = playerInputs.Player.HoldCrouch.inProgress;
@@ -144,7 +145,7 @@ public class PlayerMovement : MonoBehaviour
         } else if (movementState == PlayerMovementState.boosting){
             return 1 - friction/10;
         } else if (inputDirection.magnitude == 0) {
-            return 1 - stoppingFriction;
+            return SpeedFunction(Mathf.Clamp(horizontalVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
         } else {
             return 1 - friction;
         }
@@ -233,19 +234,20 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision){
         if (collision.contacts.Length > 0) {
-            bool groundedInHere = false;
             foreach (ContactPoint contact in collision.contacts) {
                 float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
-                /*
+                
                 if (slopeAngle > maxSlope){
-                    if (!groundedInHere) {
-                        isGrounded = false;
-                    }
+                    // uh do something
                 } else{
-                    groundedInHere = true;
                     isGrounded = true;
-                }*/
+                }
             }
+        }
+    }
+    private void OnCollisionExit(Collision collision) {
+        if (collision.contacts.Length == 0) {
+            isGrounded = false;
         }
     }
 }
