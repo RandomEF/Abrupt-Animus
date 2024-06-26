@@ -1,21 +1,21 @@
 
-| Type                    | KB/M           | Gamepad              |
-| ----------------------- | -------------- | -------------------- |
-| Strafe                  | WASD           | Left Joystick        |
-| Look                    | Mouse movement | Right Joystick       |
-| Sprint                  | Left Shift     | Left Joystick Press  |
-| Jump                    | Space          | Face Button South    |
-| Hold Crouch             | Left Control   | -                    |
-| Toggle Crouch           | C              | Face Button East     |
-| Grapple                 | Q              | Left Bumper          |
-| Boost                   | F              | Right Bumper         |
-| Reload                  | R              | Face Button West     |
-| Zoom                    | Right Click    | Left Trigger         |
-| Swap weapon             | Scroll/Numbers | Face Button North    |
-| Quick melee             | V              | Right Joystick Press |
-| Fire                    | Left Click     | Right Trigger        |
-| Pause                   | Escape         | Start                |
-| Interact/Pickup Weapons | E              | Left D-Pad           |
+| Done?                              | Type                    | KB/M           | Gamepad              |
+| ---------------------------------- | ----------------------- | -------------- | -------------------- |
+| <input type="checkbox" unchecked/> | Strafe                  | WASD           | Left Joystick        |
+| <input type="checkbox" unchecked/> | Look                    | Mouse movement | Right Joystick       |
+| <input type="checkbox" unchecked/> | Sprint                  | Left Shift     | Left Joystick Press  |
+| <input type="checkbox" unchecked/> | Jump                    | Space          | Face Button South    |
+| <input type="checkbox" unchecked/> | Hold Crouch             | Left Control   | -                    |
+| <input type="checkbox" unchecked/> | Toggle Crouch           | C              | Face Button East     |
+| <input type="checkbox" unchecked/> | Grapple                 | Q              | Left Bumper          |
+| <input type="checkbox" unchecked/> | Boost                   | F              | Right Bumper         |
+| <input type="checkbox" unchecked/> | Reload                  | R              | Face Button West     |
+| <input type="checkbox" unchecked/> | Zoom                    | Right Click    | Left Trigger         |
+| <input type="checkbox" unchecked/> | Swap weapon             | Scroll/Numbers | Face Button North    |
+| <input type="checkbox" unchecked/> | Quick melee             | V              | Right Joystick Press |
+| <input type="checkbox" unchecked/> | Fire                    | Left Click     | Right Trigger        |
+| <input type="checkbox" unchecked/> | Pause                   | Escape         | Start                |
+| <input type="checkbox" unchecked/> | Interact/Pickup Weapons | E              | Left D-Pad           |
 
 Possible adding:
 

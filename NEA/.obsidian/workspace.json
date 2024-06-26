@@ -8,32 +8,6 @@
         "type": "tabs",
         "children": [
           {
-            "id": "2247132deff29ee0",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Ideas.md",
-                "mode": "source",
-                "backlinks": false,
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "0cc22559d0ae9b22",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Ideas.md",
-                "mode": "source",
-                "backlinks": false,
-                "source": false
-              }
-            }
-          },
-          {
             "id": "0f04576869c1fc0e",
             "type": "leaf",
             "state": {
@@ -54,6 +28,19 @@
               "state": {
                 "file": "Easter Eggs.md",
                 "mode": "source",
+                "backlinks": false,
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "1648246d5a244eae",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Controls.md",
+                "mode": "preview",
                 "backlinks": false,
                 "source": false
               }
@@ -126,7 +113,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Ideas.md",
+                "file": "Controls.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -143,7 +130,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Ideas.md",
+                "file": "Controls.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -166,7 +153,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Ideas.md"
+                "file": "Controls.md"
               }
             }
           },
@@ -211,10 +198,10 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "0f04576869c1fc0e",
+  "active": "1648246d5a244eae",
   "lastOpenFiles": [
-    "Easter Eggs.md",
     "Ideas.md",
+    "Easter Eggs.md",
     "Controls.md",
     "Plan.md",
     "Mechanics.md",

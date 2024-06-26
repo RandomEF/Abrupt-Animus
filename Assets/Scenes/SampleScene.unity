@@ -731,24 +731,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   manager: {fileID: 569969866}
-  playerHeight: 1.7
-  radius: 0.5
+  playerRadius: 0.5
+  standingHeight: 1.7
+  crouchingHeight: 1
   isGrounded: 0
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
   groundDistance: 0.03
+  maxSlope: 0.1
+  groundNormal: {x: 0, y: 1, z: 0}
   gravity: -9.81
   jumpForce: 3.5
   movementState: 0
-  friction: 0.15
+  lastMovementState: 0
+  stoppingFriction: 1
+  friction: 0.9
   drag: 0.01
   velocity: {x: 0, y: 0, z: 0}
-  horizontalVelocity: {x: 0, y: 0}
+  horizontalVelocity: {x: 0, y: 0, z: 0}
   inputDirection: {x: 0, y: 0}
   preBoostVelocity: 0
-  movementAcceleration: 2
+  baseMovementAcceleration: 10
   boostMultiplier: 2
+  lastHoldCrouchState: 0
+  holdCrouch: 0
+  toggleCrouch: 0
   maxWalkSpeed: 7.5
   maxSprintSpeed: 15
   maxBoostSpeed: 0
