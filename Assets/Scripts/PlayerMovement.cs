@@ -16,8 +16,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("Ground Checks")]
     [SerializeField] private bool isGrounded = false;
     [SerializeField] private LayerMask playerLayer;
-    [SerializeField] public float groundDistance = 0.1f;
-    [SerializeField] public float maxSlope = 0.1f;
+    [SerializeField] public float groundDistance = 0.03f;
+    [SerializeField] public float maxSlope = 60f;
     [SerializeField] public Vector3 groundNormal = Vector3.up;
 
     [Header("Jumping")]
@@ -30,18 +30,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float friction = 0.9f;
     [SerializeField] private float drag = 0.01f;
     [SerializeField] private Vector3 velocity;
-    [SerializeField] private Vector3 horizontalVelocity;
+    [SerializeField] private Vector3 groundVelocity;
     [SerializeField] private Vector2 inputDirection;
     [SerializeField] private float preBoostVelocity;
-    [SerializeField] private float baseMovementAcceleration = 2f;
-    [SerializeField] private float boostMultiplier = 10f;
+    [SerializeField] private float baseMovementAcceleration = 10f;
+    [SerializeField] private float boostMultiplier = 2f;
     [SerializeField] private bool lastHoldCrouchState = false;
     [SerializeField] private bool holdCrouch;
     [SerializeField] private bool toggleCrouch;
 
     [Header("Speed Caps")]
     [SerializeField] private float maxWalkSpeed = 7.5f;
-    [SerializeField] private float maxSprintSpeed = 20f;
+    [SerializeField] private float maxSprintSpeed = 15f;
     [SerializeField] private float maxBoostSpeed;
 
     private Rigidbody player;
@@ -74,7 +74,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Update() {
         velocity = player.velocity;
-        horizontalVelocity = new Vector3(player.velocity.x, 0, player.velocity.z);
+        groundVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
         bool crouching = CrouchControlState();
 
@@ -86,13 +86,13 @@ public class PlayerMovement : MonoBehaviour
         lastMovementState = movementState;
     }
     private void SetMovementState(bool isCrouched){
-        if (horizontalVelocity.magnitude <= maxWalkSpeed && isCrouched){
+        if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched){
             movementState = PlayerMovementState.crouched;
-        } else if (horizontalVelocity.magnitude > maxWalkSpeed && isCrouched){
+        } else if (groundVelocity.magnitude > maxWalkSpeed && isCrouched){
             movementState = PlayerMovementState.sliding;
-        } else if ((horizontalVelocity.magnitude < preBoostVelocity - 1 && horizontalVelocity.magnitude > minSpeed && horizontalVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (horizontalVelocity.magnitude > minSpeed && horizontalVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
+        } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.walking;
-        } else if ((horizontalVelocity.magnitude < preBoostVelocity - 1 && horizontalVelocity.magnitude > minSpeed && horizontalVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (horizontalVelocity.magnitude > minSpeed && horizontalVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
+        } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.sprinting;
         } else if (inputDirection.magnitude == 0){
             movementState = PlayerMovementState.idle;
@@ -128,12 +128,6 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-    private bool GroundCheck(){
-        return Physics.CheckSphere(
-            new Vector3(player.transform.position.x, player.transform.position.y - groundDistance + (0.99f * player.transform.localScale.x * playerCollider.radius) - (player.transform.localScale.y * playerCollider.height)/2, player.transform.position.z),
-            player.transform.localScale.x * playerCollider.radius * 0.99f,
-            playerLayer);
-    }
     private void Gravity(){
         if (!isGrounded){
             player.AddForce(Physics.gravity / -9.81f * gravity, ForceMode.Acceleration);
@@ -145,7 +139,7 @@ public class PlayerMovement : MonoBehaviour
         } else if (movementState == PlayerMovementState.boosting){
             return 1 - friction/10;
         } else if (inputDirection.magnitude == 0) {
-            return SpeedFunction(Mathf.Clamp(horizontalVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
+            return 0;//SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
         } else {
             return 1 - friction;
         }
@@ -161,7 +155,7 @@ public class PlayerMovement : MonoBehaviour
             case PlayerMovementState.idle:
                 return maxWalkSpeed;
             default:
-                return horizontalVelocity.magnitude;
+                return groundVelocity.magnitude;
         }
     }
     private float Pow4(float num){
@@ -172,18 +166,18 @@ public class PlayerMovement : MonoBehaviour
     }
     private float CalculateAccelerationMultiplier(Vector2? speed = null){
         if (speed == null){
-            speed = horizontalVelocity;
+            speed = groundVelocity;
         }
         float clampedMagnitude;
         float acceleration;
         switch (movementState){
             case PlayerMovementState.walking:
                 clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxWalkSpeed).magnitude;
-                acceleration = SpeedFunction(clampedMagnitude, 0.75f, 10);
+                acceleration = 10f;//SpeedFunction(clampedMagnitude, 0.75f, 10);
                 break;
             case PlayerMovementState.sprinting:
                 clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
-                acceleration = SpeedFunction(clampedMagnitude, 1, 15f);
+                acceleration = 15f;//SpeedFunction(clampedMagnitude, 1, 15f);
                 break;
             case PlayerMovementState.boosting:
                 acceleration = 10f;
@@ -198,25 +192,34 @@ public class PlayerMovement : MonoBehaviour
         float maxSpeed = MaxSpeed();
         float acceleration = CalculateAccelerationMultiplier();
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
-        if (horizontalVelocity.magnitude > maxSpeed) {
-            acceleration *= horizontalVelocity.magnitude / maxSpeed;
+        if (groundVelocity.magnitude > maxSpeed) {
+            acceleration *= groundVelocity.magnitude / maxSpeed;
         }
-        Vector3 direction = target * maxSpeed - horizontalVelocity;
+        Vector3 direction = target * maxSpeed - groundVelocity;
+        float directionMag = direction.magnitude;
+        direction = Vector3.ProjectOnPlane(direction, groundNormal).normalized * directionMag;
 
         if (direction.magnitude < 0.5f)
         {
             acceleration *= direction.magnitude / 0.5f;
         }
-        acceleration = Mathf.Abs(acceleration);
+        //acceleration = Mathf.Abs(acceleration);
+        //direction = direction.normalized * acceleration;
+
         direction = direction.normalized * acceleration;
+        float magn = direction.magnitude;
+        direction = direction.normalized;
+        direction *= magn;
 
-        Vector3 groundNormal = Vector3.up;
+        //Vector3 slopeCorrection = -1 * groundNormal * (Physics.gravity.y / -9.81f * gravity) / groundNormal.y;
+        //slopeCorrection.y = 0f;
+        //direction += slopeCorrection;
 
-        Vector3 slopeCorrection = groundNormal * (Physics.gravity.y / -9.81f * gravity) / groundNormal.y;
-        slopeCorrection.y = 0f;
-        direction += slopeCorrection;
+        //direction -= direction * FrictionMultiplier();
+        Debug.Log(direction);
+        //TODO Weird phantom movement when on slope - problem is x getting turned around in the slope correction code
 
-        player.AddForce(direction - direction * FrictionMultiplier(), ForceMode.Acceleration);
+        player.AddForce(direction, ForceMode.Acceleration);
     }
     private void Jump(InputAction.CallbackContext inputType){
         if (isGrounded){
@@ -225,14 +228,14 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Boost(InputAction.CallbackContext inputType){
         movementState = PlayerMovementState.boosting;
-        preBoostVelocity = horizontalVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : horizontalVelocity.magnitude;
+        preBoostVelocity = groundVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : groundVelocity.magnitude;
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
 
-        Vector3 movement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * horizontalVelocity.magnitude * (boostMultiplier - 1);
+        Vector3 movement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * groundVelocity.magnitude * (boostMultiplier - 1);
         maxBoostSpeed = velocity.magnitude + movement.magnitude;
         player.AddForce(movement, ForceMode.VelocityChange);
     }
-    private void OnCollisionEnter(Collision collision){
+    private void OnCollisionStay(Collision collision){
         if (collision.contacts.Length > 0) {
             foreach (ContactPoint contact in collision.contacts) {
                 float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
@@ -241,6 +244,7 @@ public class PlayerMovement : MonoBehaviour
                     // uh do something
                 } else{
                     isGrounded = true;
+                    groundNormal = contact.normal;
                 }
             }
         }
@@ -248,6 +252,13 @@ public class PlayerMovement : MonoBehaviour
     private void OnCollisionExit(Collision collision) {
         if (collision.contacts.Length == 0) {
             isGrounded = false;
+            groundNormal = Vector3.up;
         }
+    }
+    private bool GroundCheck(){
+        return Physics.CheckSphere(
+            new Vector3(player.transform.position.x, player.transform.position.y - groundDistance + (0.99f * player.transform.localScale.x * playerCollider.radius) - (player.transform.localScale.y * playerCollider.height)/2, player.transform.position.z),
+            player.transform.localScale.x * playerCollider.radius * 0.99f,
+            playerLayer);
     }
 }
