@@ -40,6 +40,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool toggleCrouch;
 
     [Header("Speed Caps")]
+    [SerializeField] private float maxCrouchSpeed = 4.5f;
+    [SerializeField] private float maxSlidingSpeed = 15f;
     [SerializeField] private float maxWalkSpeed = 7.5f;
     [SerializeField] private float maxSprintSpeed = 15f;
     [SerializeField] private float maxBoostSpeed;
@@ -51,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
     public enum PlayerMovementState
     {
         idle,
-        crouched,
+        crouching,
         sliding,
         walking,
         sprinting,
@@ -86,14 +88,15 @@ public class PlayerMovement : MonoBehaviour
         lastMovementState = movementState;
     }
     private void SetMovementState(bool isCrouched){
-        if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched){
-            movementState = PlayerMovementState.crouched;
+        if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding){
+            movementState = PlayerMovementState.crouching;
         } else if (groundVelocity.magnitude > maxWalkSpeed && isCrouched){
             movementState = PlayerMovementState.sliding;
         } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.walking;
         } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.sprinting;
+            maxSlidingSpeed = groundVelocity.magnitude;
         } else if (inputDirection.magnitude == 0){
             movementState = PlayerMovementState.idle;
         }
@@ -121,7 +124,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Crouch(){
         if (lastMovementState != movementState){
-            if (movementState == PlayerMovementState.crouched || movementState == PlayerMovementState.sliding){
+            if (movementState == PlayerMovementState.crouching || movementState == PlayerMovementState.sliding){
                 SetPlayerDimensions(crouchingHeight, playerRadius);
             } else {
                 SetPlayerDimensions(standingHeight, playerRadius);
@@ -130,7 +133,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Gravity(){
         if (!isGrounded){
-            player.AddForce(Physics.gravity / -9.81f * gravity, ForceMode.Acceleration);
+            player.AddForce((Physics.gravity / -9.81f * gravity) * Time.deltaTime, ForceMode.VelocityChange);
         }
     }
     private float FrictionMultiplier(){
@@ -139,13 +142,17 @@ public class PlayerMovement : MonoBehaviour
         } else if (movementState == PlayerMovementState.boosting){
             return 1 - friction/10;
         } else if (inputDirection.magnitude == 0) {
-            return 0;//SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
+            return SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
         } else {
             return 1 - friction;
         }
     }
     private float MaxSpeed(){
         switch (movementState){
+            case PlayerMovementState.crouching:
+                return maxCrouchSpeed;
+            case PlayerMovementState.sliding:
+                return maxSlidingSpeed;
             case PlayerMovementState.walking:
                 return maxWalkSpeed;
             case PlayerMovementState.sprinting:
@@ -173,14 +180,22 @@ public class PlayerMovement : MonoBehaviour
         switch (movementState){
             case PlayerMovementState.walking:
                 clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxWalkSpeed).magnitude;
-                acceleration = 10f;//SpeedFunction(clampedMagnitude, 0.75f, 10);
+                acceleration = SpeedFunction(clampedMagnitude, 0.75f, 10);
                 break;
             case PlayerMovementState.sprinting:
                 clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
-                acceleration = 15f;//SpeedFunction(clampedMagnitude, 1, 15f);
+                acceleration = SpeedFunction(clampedMagnitude, 1, 15f);
                 break;
             case PlayerMovementState.boosting:
                 acceleration = 10f;
+                break;
+            case PlayerMovementState.crouching:
+                clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
+                acceleration = SpeedFunction(clampedMagnitude, 0.45f, 10f);
+                break;
+            case PlayerMovementState.sliding:
+                clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
+                acceleration = SpeedFunction(clampedMagnitude, 1.2f, 12.5f) - 35f;
                 break;
             default:
                 acceleration = 0f;
@@ -203,23 +218,12 @@ public class PlayerMovement : MonoBehaviour
         {
             acceleration *= direction.magnitude / 0.5f;
         }
-        //acceleration = Mathf.Abs(acceleration);
-        //direction = direction.normalized * acceleration;
-
+        // acceleration = Mathf.Abs(acceleration);
         direction = direction.normalized * acceleration;
-        float magn = direction.magnitude;
-        direction = direction.normalized;
-        direction *= magn;
 
-        //Vector3 slopeCorrection = -1 * groundNormal * (Physics.gravity.y / -9.81f * gravity) / groundNormal.y;
-        //slopeCorrection.y = 0f;
-        //direction += slopeCorrection;
+        direction -= direction * FrictionMultiplier();
 
-        //direction -= direction * FrictionMultiplier();
-        Debug.Log(direction);
-        //TODO Weird phantom movement when on slope - problem is x getting turned around in the slope correction code
-
-        player.AddForce(direction, ForceMode.Acceleration);
+        player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
     private void Jump(InputAction.CallbackContext inputType){
         if (isGrounded){

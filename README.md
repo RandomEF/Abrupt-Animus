@@ -15,6 +15,9 @@ This is a movement-based FPS game, where the aim of the game is to manage your m
 - Mouse movement/FPS camera
 - Sprinting
 - Crouching (both hold and toggle)
+- Basic bullet class
+- Basic gun class
+- Entity damage handling
 
 ## **To do**
 

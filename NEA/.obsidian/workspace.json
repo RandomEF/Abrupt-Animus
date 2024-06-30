@@ -40,7 +40,7 @@
               "type": "markdown",
               "state": {
                 "file": "Controls.md",
-                "mode": "preview",
+                "mode": "source",
                 "backlinks": false,
                 "source": false
               }
@@ -200,13 +200,13 @@
   },
   "active": "1648246d5a244eae",
   "lastOpenFiles": [
-    "Ideas.md",
-    "Easter Eggs.md",
-    "Controls.md",
     "Plan.md",
     "Mechanics.md",
     "Lore.md",
+    "Ideas.md",
+    "Controls.md",
     "Theme.md",
+    "Easter Eggs.md",
     "Plan.txt",
     "Plan - Copy.md",
     "Excalidraw/Drawing 2024-05-16 17.30.33.excalidraw.md",
