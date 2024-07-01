@@ -16,7 +16,7 @@
 | <input type="checkbox" unchecked/> | Fire                    | Left Click     | Right Trigger        |
 | <input type="checkbox" unchecked/> | Interact/Pickup Weapons | E              | Left D-Pad           |
 | <input type="checkbox" unchecked/> | Pause                   | Escape         | Start                |
-
+Swap weapon needs to split into individual weapon slots, and both directions
 Possible adding:
 
 | Type       | KB/M | Gamepad     |
