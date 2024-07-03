@@ -9,6 +9,6 @@ public class Gun : MonoBehaviour
 
     public void Fire(){
         Instantiate(bullet, barrel.transform.position, barrel.rotation);
-        Debug.Log("Fired");
+        Debug.Log("Fired " + gameObject.name);
     }
 }

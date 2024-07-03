@@ -26,19 +26,6 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Easter Eggs.md",
-                "mode": "source",
-                "backlinks": false,
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "1648246d5a244eae",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
                 "file": "Controls.md",
                 "mode": "source",
                 "backlinks": false,
@@ -47,7 +34,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -198,15 +185,15 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "1648246d5a244eae",
+  "active": "e1f15b95a21f9bdf",
   "lastOpenFiles": [
+    "Easter Eggs.md",
+    "Controls.md",
     "Plan.md",
     "Mechanics.md",
     "Lore.md",
     "Ideas.md",
-    "Controls.md",
     "Theme.md",
-    "Easter Eggs.md",
     "Plan.txt",
     "Plan - Copy.md",
     "Excalidraw/Drawing 2024-05-16 17.30.33.excalidraw.md",

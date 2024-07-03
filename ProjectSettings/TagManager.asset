@@ -4,7 +4,8 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Gun
+  - Weapon
+  - Interact
   layers:
   - Default
   - TransparentFX
@@ -12,8 +13,6 @@ TagManager:
   - 
   - Water
   - UI
-  - Player
-  - Standable
   - 
   - 
   - 
@@ -37,7 +36,9 @@ TagManager:
   - 
   - 
   - 
-  - test
+  - 
+  - 
+  - 
   m_SortingLayers:
   - name: Default
     uniqueID: 0

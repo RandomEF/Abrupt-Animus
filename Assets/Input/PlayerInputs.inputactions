@@ -81,7 +81,7 @@
                     "name": "SwapWeapon",
                     "type": "Value",
                     "id": "bc567fe0-5a7e-423f-95e6-b2633f81cc62",
-                    "expectedControlType": "Axis",
+                    "expectedControlType": "",
                     "processors": "Normalize(min=-1,max=1)",
                     "interactions": "",
                     "initialStateCheck": true
@@ -108,6 +108,15 @@
                     "name": "WeaponSlot3",
                     "type": "Button",
                     "id": "8fd43667-19d9-4240-896b-0a0346ff0984",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "2ed0fe8d-b4b7-4970-96c1-66ab53315e2c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -420,6 +429,28 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "WeaponSlot3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fc7c787e-da0a-49df-b60d-2435c4b8b8cf",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KBM",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e7b105f9-4fc0-4186-91ab-0a5ee02d9073",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
