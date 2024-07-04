@@ -15,7 +15,8 @@ Level access is done with a hub system similar to Doom Eternal and Donkey Kong 6
 	Will be transported to a cyberspace to select the level
 
 Character Creation
-Throwback Grenades
+Throwback Grenades - can be implemented by having the grenades temporarily swap into the melee slot
+Grenades can be implemented as another weapon, so that it takes the standard slots
 ## Scoring
 
 Each level is scored based on:

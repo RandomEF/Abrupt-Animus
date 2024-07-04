@@ -26,7 +26,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Controls.md",
+                "file": "Mechanics.md",
                 "mode": "source",
                 "backlinks": false,
                 "source": false
@@ -100,7 +100,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Controls.md",
+                "file": "Mechanics.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -117,7 +117,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Controls.md",
+                "file": "Mechanics.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -140,7 +140,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Controls.md"
+                "file": "Mechanics.md"
               }
             }
           },
@@ -187,8 +187,8 @@
   },
   "active": "e1f15b95a21f9bdf",
   "lastOpenFiles": [
-    "Easter Eggs.md",
     "Controls.md",
+    "Easter Eggs.md",
     "Plan.md",
     "Mechanics.md",
     "Lore.md",

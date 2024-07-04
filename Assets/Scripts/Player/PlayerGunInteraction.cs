@@ -13,7 +13,7 @@ public class PlayerGunInteraction : MonoBehaviour
     public Transform weaponHold;
     public Transform weaponStow;
     public GameObject manager;
-    public GameObject[] weaponSlots = new GameObject[4];
+    public List<GameObject> weaponSlots = new List<GameObject>(); // Maybe reimplement as a list, so that scrolling works
     public int activeWeaponSlot = 0;
     private PlayerInputs playerInputs;
     /*
@@ -24,6 +24,9 @@ public class PlayerGunInteraction : MonoBehaviour
         playerInputs = manager.GetComponent<PlayerManager>().inputs;
         playerInputs.Player.Fire.performed += Fire;
         playerInputs.Player.SwapWeapon.performed += SwapWeapon;
+        playerInputs.Player.WeaponSlot1.performed += (i) => SwapSpecificSlot(1);
+        playerInputs.Player.WeaponSlot2.performed += (i) => SwapSpecificSlot(2);
+        playerInputs.Player.WeaponSlot3.performed += (i) => SwapSpecificSlot(3);
         playerInputs.Player.Interact.performed += Interact;
         foreach(GameObject weapon in weaponSlots){
             if (weapon != null){
@@ -40,9 +43,9 @@ public class PlayerGunInteraction : MonoBehaviour
     {
         return weaponSlots[activeWeaponSlot];
     }
-    private int Wrap(int value, GameObject[] list)
+    private int Wrap(int value, List<GameObject> list)
     {
-        return ((value % list.Length) + list.Length) % list.Length;
+        return ((value % list.Count) + list.Count) % list.Count;
     }
 
     private void Fire(InputAction.CallbackContext inputType)
@@ -64,9 +67,26 @@ public class PlayerGunInteraction : MonoBehaviour
         weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
         weaponSlots[activeWeaponSlot].SetActive(true);
     }
+    private void SwapSpecificSlot(int slot){
+        if (slot > weaponSlots.Count){
+            return;
+        }
+        if (weaponSlots[slot] == null){
+            return;
+        }
+        weaponSlots[activeWeaponSlot].SetActive(false);
+        weaponSlots[activeWeaponSlot].transform.position = weaponStow.position;
+        activeWeaponSlot = slot;
+        weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
+        weaponSlots[activeWeaponSlot].SetActive(true);
+    }
     private int GetSwapSlot(out bool wasUsed)
     {
-        for (int i = 0; i < weaponSlots.Length; i++)
+        if (weaponSlots.Count < 4){
+            wasUsed = false;
+            return activeWeaponSlot + 1;
+        }
+        for (int i = 0; i < weaponSlots.Count; i++)
         {
             if (weaponSlots[i] == null)
             {
@@ -102,6 +122,7 @@ public class PlayerGunInteraction : MonoBehaviour
                 weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = true;
                 weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = false;
                 weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
+                weaponSlots[activeWeaponSlot].transform.rotation = weaponHold.rotation;
                 //TODO set the rotation as well
             }
         }
