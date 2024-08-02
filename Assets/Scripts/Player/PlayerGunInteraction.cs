@@ -1,21 +1,22 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
+using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
-using UnityEngine.Animations;
 using UnityEngine.InputSystem;
-using UnityEngine.UIElements.Experimental;
 
 public class PlayerGunInteraction : MonoBehaviour
 {
     public Camera playerHead;
     public Transform weaponHold;
     public Transform weaponStow;
+    private Vector3 difference;
     public GameObject manager;
     public List<GameObject> weaponSlots = new List<GameObject>(); // Maybe reimplement as a list, so that scrolling works
     public int activeWeaponSlot = 0;
     private PlayerInputs playerInputs;
+
+    [SerializeField] private float rotationSpeed = 10f;
+
     /*
     This script should handle swapping between weapon slots, picking up weapons, firing the weapons
     */
@@ -38,6 +39,22 @@ public class PlayerGunInteraction : MonoBehaviour
         }
         weaponSlots[0].SetActive(true);
         weaponSlots[0].transform.position = weaponHold.position;
+        difference = playerHead.transform.position - weaponHold.position;
+    }
+    private void Update() {
+        if (weaponSlots.Count > 0){
+            RaycastHit playerHit;
+            Quaternion lookRotation = playerHead.transform.rotation;
+            if (Physics.Raycast(
+                origin: playerHead.transform.position,
+                direction: playerHead.transform.rotation * Vector3.forward,
+                hitInfo: out playerHit
+                )){
+                Vector3 pointDirection = (playerHit.point - weaponSlots[activeWeaponSlot].transform.position).normalized;
+                lookRotation = Quaternion.LookRotation(pointDirection);
+            }
+            weaponSlots[activeWeaponSlot].transform.rotation = Quaternion.Slerp(weaponSlots[activeWeaponSlot].transform.rotation, lookRotation, rotationSpeed * Time.deltaTime);
+        }
     }
     private GameObject SelectFireWeapon()
     {
@@ -86,14 +103,6 @@ public class PlayerGunInteraction : MonoBehaviour
             wasUsed = false;
             return activeWeaponSlot + 1;
         }
-        for (int i = 0; i < weaponSlots.Count; i++)
-        {
-            if (weaponSlots[i] == null)
-            {
-                wasUsed = false;
-                return i; // Find the empty slot and return it
-            }
-        }
         wasUsed = true;
         return activeWeaponSlot; // Return the current slot if there isn't an empty one
     }
@@ -116,9 +125,10 @@ public class PlayerGunInteraction : MonoBehaviour
                     weaponSlots[activeWeaponSlot].transform.SetParent(null, true);
                     weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = false;
                     weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = true;
+                } else {
+                    weaponSlots.Add(hit.collider.gameObject);
                 }
-                hit.transform.SetParent(playerHead.transform, true);
-                weaponSlots[activeWeaponSlot] = hit.collider.gameObject;
+                weaponSlots[activeWeaponSlot].transform.SetParent(playerHead.transform, true);
                 weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = true;
                 weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = false;
                 weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;

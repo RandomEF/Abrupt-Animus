@@ -2,19 +2,24 @@ using UnityEngine;
 
 public abstract class Entity : MonoBehaviour
 {
-    public float MaxHealth { get; set;}
-    public float Health {get; set;}
-    public float DefenseMultiplier { get; set;}
-    public float HealingMultiplier { get; set;}
+    [SerializeField] private float maxHealth = 100;
+    [SerializeField] private float health = 100;
+    [SerializeField] private float defenseMultiplier = 0;
+    [SerializeField] private float healingMultiplier = 0;
+    public float MaxHealth { get {return maxHealth;} set {maxHealth = value;}}
+    public float Health {get {return health;} set {health = value;}}
+    public float DefenseMultiplier { get {return defenseMultiplier;} set {defenseMultiplier = value;}}
+    public float HealingMultiplier { get {return healingMultiplier;} set {healingMultiplier = value;}}
 
-    private void Start() {
-        Health = MaxHealth;    
+    public void Start(){
+        Health = MaxHealth;
     }
 
     public void Damage(float attack){
+        Debug.Log("Ouch " + attack);
         Health -= attack * (1 - DefenseMultiplier);
         Health = Mathf.Clamp(Health, 0, MaxHealth);
-        if (Health < 0) {
+        if (Health == 0) {
             Kill();
         }
     }

@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -46,8 +45,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxSprintSpeed = 15f;
     [SerializeField] private float maxBoostSpeed;
 
-    private Rigidbody player;
-    private CapsuleCollider playerCollider;
+    [Header("Objects")]
+    [SerializeField] private GameObject body;
+    [SerializeField] private Rigidbody player;
+    [SerializeField] private CapsuleCollider playerCollider;
     const float minSpeed = 1e-4f;
 
     public enum PlayerMovementState
@@ -63,8 +64,8 @@ public class PlayerMovement : MonoBehaviour
     private void Start() {
         playerLayer = LayerMask.GetMask("Standable");
 
-        player = GetComponent<Rigidbody>();
-        playerCollider = GetComponent<CapsuleCollider>();
+        player = body.GetComponent<Rigidbody>();
+        playerCollider = body.GetComponent<CapsuleCollider>();
         SetPlayerDimensions(standingHeight, playerRadius);
 
         playerInputs = manager.GetComponent<PlayerManager>().inputs;
@@ -75,7 +76,7 @@ public class PlayerMovement : MonoBehaviour
         movementState = PlayerMovementState.idle;
     }
     private void Update() {
-        velocity = player.velocity;
+        velocity = player.linearVelocity;
         groundVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
         bool crouching = CrouchControlState();
@@ -141,10 +142,12 @@ public class PlayerMovement : MonoBehaviour
             return 1 - drag;
         } else if (movementState == PlayerMovementState.boosting){
             return 1 - friction/10;
+        } else if (movementState == PlayerMovementState.sliding){
+            return 1 - friction;
         } else if (inputDirection.magnitude == 0) {
             return SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
         } else {
-            return 1 - friction;
+            return SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1f), 1, 1) - 1;
         }
     }
     private float MaxSpeed(){
@@ -194,8 +197,9 @@ public class PlayerMovement : MonoBehaviour
                 acceleration = SpeedFunction(clampedMagnitude, 0.45f, 10f);
                 break;
             case PlayerMovementState.sliding:
-                clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
-                acceleration = SpeedFunction(clampedMagnitude, 1.2f, 12.5f) - 35f;
+                // clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
+                // acceleration = SpeedFunction(clampedMagnitude, 1.2f, 12.5f) - 35f;
+                acceleration = -baseMovementAcceleration + 0.1f;
                 break;
             default:
                 acceleration = 0f;
@@ -204,9 +208,15 @@ public class PlayerMovement : MonoBehaviour
         return acceleration + baseMovementAcceleration;
     }
     private void Movement() {
+        // if (movementState == PlayerMovementState.sliding){
+        //     Sliding();
+        //     return;
+        // }
         float maxSpeed = MaxSpeed();
         float acceleration = CalculateAccelerationMultiplier();
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
+        float alignment = Vector3.Dot(groundVelocity.normalized, target.normalized);
+
         if (groundVelocity.magnitude > maxSpeed) {
             acceleration *= groundVelocity.magnitude / maxSpeed;
         }
@@ -218,14 +228,31 @@ public class PlayerMovement : MonoBehaviour
         {
             acceleration *= direction.magnitude / 0.5f;
         }
-        // acceleration = Mathf.Abs(acceleration);
+
+        if (alignment < 0){
+            acceleration *= 2;
+        }
+
         direction = direction.normalized * acceleration;
 
         direction -= direction * FrictionMultiplier();
 
         player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
+    private void Sliding(){
+        /*
+        When sliding, have the normal movement function pass to here instead.
+        Sliding should first increase, then decrease your speed, encouraging you to leave your slide earlier to gain speed.
+        Sliding's target direction will be the current direction of movement.
+        Player input will only allow slight nudges in direction, rather than a controlling factor, allowing the bare minimum control.
+        */
+    }
     private void Jump(InputAction.CallbackContext inputType){
+        /*
+        Jumping should provide a forward boost in the input direction held.
+        Jumping in mid air should also you to change direction.
+        TODO Test if double jumping backwards at high speeds changes directions
+        */
         if (isGrounded){
             player.AddForce(Vector3.up * jumpForce + new Vector3(0, velocity.y, 0), ForceMode.VelocityChange);
         }
@@ -255,6 +282,23 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnCollisionExit(Collision collision) {
         if (collision.contacts.Length == 0) {
+            isGrounded = false;
+            groundNormal = Vector3.up;
+        }
+    }
+    public void CollisionDetected(Collision collision){
+        if (collision.contacts.Length > 0) {
+            foreach (ContactPoint contact in collision.contacts) {
+                float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
+                
+                if (slopeAngle > maxSlope){
+                    // uh do something
+                } else{
+                    isGrounded = true;
+                    groundNormal = contact.normal;
+                }
+            }
+        } else if (collision.contacts.Length == 0) {
             isGrounded = false;
             groundNormal = Vector3.up;
         }
