@@ -32,9 +32,22 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "2ceb8d58d80f1b23",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Dialogue System.md",
+                "mode": "source",
+                "backlinks": false,
+                "source": false
+              }
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -100,7 +113,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Mechanics.md",
+                "file": "Dialogue System.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -117,7 +130,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Mechanics.md",
+                "file": "Dialogue System.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -140,7 +153,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Mechanics.md"
+                "file": "Dialogue System.md"
               }
             }
           },
@@ -185,10 +198,11 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "e1f15b95a21f9bdf",
+  "active": "2ceb8d58d80f1b23",
   "lastOpenFiles": [
-    "Controls.md",
     "Mechanics.md",
+    "Dialogue System.md",
+    "Controls.md",
     "Theme.md",
     "Ideas.md",
     "Easter Eggs.md",
@@ -221,7 +235,6 @@
     "Mathematics/Large Data Set/International Locations.png",
     "Mathematics",
     "Computer Science/Data Structures/Arrays-Lists-Tuples-Records.md",
-    "Computer Science/IOS/Primary Storage.md",
     "Computer Science/System Software",
     "Computer Science/Data Structures",
     "Computer Science/IOS"

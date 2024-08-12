@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -34,9 +35,14 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float preBoostVelocity;
     [SerializeField] private float baseMovementAcceleration = 10f;
     [SerializeField] private float boostMultiplier = 2f;
+
+    [Header("Crouching")]
     [SerializeField] private bool lastHoldCrouchState = false;
-    [SerializeField] private bool holdCrouch;
-    [SerializeField] private bool toggleCrouch;
+    [SerializeField] private bool holdCrouch = false;
+    [SerializeField] private bool toggleCrouch = false;
+    [SerializeField] private bool wasSliding = false;
+    [SerializeField] private float startedSliding;
+    [SerializeField] private bool slideCapSet;
 
     [Header("Speed Caps")]
     [SerializeField] private float maxCrouchSpeed = 4.5f;
@@ -91,20 +97,34 @@ public class PlayerMovement : MonoBehaviour
     private void SetMovementState(bool isCrouched){
         if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding){
             movementState = PlayerMovementState.crouching;
+            wasSliding = false;
         } else if (groundVelocity.magnitude > maxWalkSpeed && isCrouched){
             movementState = PlayerMovementState.sliding;
+            wasSliding = false;
         } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.walking;
+            wasSliding = false;
         } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.sprinting;
-            maxSlidingSpeed = groundVelocity.magnitude;
+            if (!wasSliding){
+                wasSliding = true;
+                startedSliding = Time.time;
+                maxSlidingSpeed = groundVelocity.magnitude + 50f;
+            }
+            if (slideCapSet){
+                maxSlidingSpeed = groundVelocity.magnitude;
+            }
         } else if (inputDirection.magnitude == 0){
             movementState = PlayerMovementState.idle;
+            wasSliding = false;
         }
     }
     private void SetPlayerDimensions(float height, float radius){
-        float previousHeight = player.transform.localScale.y * playerCollider.height;
-        player.transform.localScale = new Vector3(radius/playerCollider.radius, height/playerCollider.height, radius/playerCollider.radius);
+        // float previousHeight = player.transform.localScale.y * playerCollider.height;
+        // player.transform.localScale = new Vector3(radius/playerCollider.radius, height/playerCollider.height, radius/playerCollider.radius);
+        // player.transform.position -= new Vector3(0, (previousHeight - height)/2, 0);
+        float previousHeight = playerCollider.height;
+        playerCollider.height = height;
         player.transform.position -= new Vector3(0, (previousHeight - height)/2, 0);
     }
     private bool CrouchControlState(){
@@ -199,7 +219,16 @@ public class PlayerMovement : MonoBehaviour
             case PlayerMovementState.sliding:
                 // clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
                 // acceleration = SpeedFunction(clampedMagnitude, 1.2f, 12.5f) - 35f;
-                acceleration = -baseMovementAcceleration + 0.1f;
+                // acceleration = -baseMovementAcceleration + 0.1f;
+                float currentTime = Time.time;
+                float difference = currentTime - startedSliding;
+                if (difference < 0.1){
+                    acceleration = -5 * difference + 20;
+                    slideCapSet = false;
+                } else {
+                    acceleration = 0.5f;
+                    slideCapSet = true;
+                }
                 break;
             default:
                 acceleration = 0f;
@@ -208,10 +237,6 @@ public class PlayerMovement : MonoBehaviour
         return acceleration + baseMovementAcceleration;
     }
     private void Movement() {
-        // if (movementState == PlayerMovementState.sliding){
-        //     Sliding();
-        //     return;
-        // }
         float maxSpeed = MaxSpeed();
         float acceleration = CalculateAccelerationMultiplier();
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
@@ -224,28 +249,19 @@ public class PlayerMovement : MonoBehaviour
         float directionMag = direction.magnitude;
         direction = Vector3.ProjectOnPlane(direction, groundNormal).normalized * directionMag;
 
-        if (direction.magnitude < 0.5f)
+        if (direction.magnitude < 0.5f) // If moving very slowly
         {
             acceleration *= direction.magnitude / 0.5f;
         }
 
-        if (alignment < 0){
+        if (alignment <= 0){ // If attempting to move in a wildly opposite direction
             acceleration *= 2;
         }
 
         direction = direction.normalized * acceleration;
-
         direction -= direction * FrictionMultiplier();
 
         player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
-    }
-    private void Sliding(){
-        /*
-        When sliding, have the normal movement function pass to here instead.
-        Sliding should first increase, then decrease your speed, encouraging you to leave your slide earlier to gain speed.
-        Sliding's target direction will be the current direction of movement.
-        Player input will only allow slight nudges in direction, rather than a controlling factor, allowing the bare minimum control.
-        */
     }
     private void Jump(InputAction.CallbackContext inputType){
         /*
@@ -266,27 +282,7 @@ public class PlayerMovement : MonoBehaviour
         maxBoostSpeed = velocity.magnitude + movement.magnitude;
         player.AddForce(movement, ForceMode.VelocityChange);
     }
-    private void OnCollisionStay(Collision collision){
-        if (collision.contacts.Length > 0) {
-            foreach (ContactPoint contact in collision.contacts) {
-                float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
-                
-                if (slopeAngle > maxSlope){
-                    // uh do something
-                } else{
-                    isGrounded = true;
-                    groundNormal = contact.normal;
-                }
-            }
-        }
-    }
-    private void OnCollisionExit(Collision collision) {
-        if (collision.contacts.Length == 0) {
-            isGrounded = false;
-            groundNormal = Vector3.up;
-        }
-    }
-    public void CollisionDetected(Collision collision){
+    public void CollisionDetected(Collision collision){ // This function is called externally by the body
         if (collision.contacts.Length > 0) {
             foreach (ContactPoint contact in collision.contacts) {
                 float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
@@ -303,10 +299,12 @@ public class PlayerMovement : MonoBehaviour
             groundNormal = Vector3.up;
         }
     }
+    /*
     private bool GroundCheck(){
         return Physics.CheckSphere(
             new Vector3(player.transform.position.x, player.transform.position.y - groundDistance + (0.99f * player.transform.localScale.x * playerCollider.radius) - (player.transform.localScale.y * playerCollider.height)/2, player.transform.position.z),
             player.transform.localScale.x * playerCollider.radius * 0.99f,
             playerLayer);
     }
+    */
 }

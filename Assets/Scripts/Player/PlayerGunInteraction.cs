@@ -29,6 +29,7 @@ public class PlayerGunInteraction : MonoBehaviour
         playerInputs.Player.WeaponSlot2.performed += (i) => SwapSpecificSlot(2);
         playerInputs.Player.WeaponSlot3.performed += (i) => SwapSpecificSlot(3);
         playerInputs.Player.Interact.performed += Interact;
+
         foreach(GameObject weapon in weaponSlots){
             if (weapon != null){
                 weapon.SetActive(false);
@@ -37,9 +38,11 @@ public class PlayerGunInteraction : MonoBehaviour
                 weapon.transform.position = weaponStow.position; 
             }
         }
-        weaponSlots[0].SetActive(true);
-        weaponSlots[0].transform.position = weaponHold.position;
-        difference = playerHead.transform.position - weaponHold.position;
+        if (weaponSlots.Count > 0){
+            weaponSlots[0].SetActive(true);
+            weaponSlots[0].transform.position = weaponHold.position;
+            difference = playerHead.transform.position - weaponHold.position;
+        }
     }
     private void Update() {
         if (weaponSlots.Count > 0){
@@ -64,25 +67,27 @@ public class PlayerGunInteraction : MonoBehaviour
     {
         return ((value % list.Count) + list.Count) % list.Count;
     }
-
     private void Fire(InputAction.CallbackContext inputType)
     {
-        GameObject weapon = SelectFireWeapon();
-        weapon.GetComponent<Gun>().Fire();
+        if (weaponSlots.Count > 0){
+            GameObject weapon = SelectFireWeapon();
+            weapon.GetComponent<Gun>().Fire();
+        }
     }
-
     private void SwapWeapon(InputAction.CallbackContext inputType)
     {
-        int direction = (int)inputType.ReadValue<float>();
-        weaponSlots[activeWeaponSlot].SetActive(false);
-        weaponSlots[activeWeaponSlot].transform.position = weaponStow.position;
-        activeWeaponSlot = Wrap(activeWeaponSlot + direction, weaponSlots);
-        if (SelectFireWeapon() == null)
-        {
-            activeWeaponSlot = Wrap(activeWeaponSlot - direction, weaponSlots);
+        if (weaponSlots.Count > 0){
+            int direction = (int)inputType.ReadValue<float>();
+            weaponSlots[activeWeaponSlot].SetActive(false);
+            weaponSlots[activeWeaponSlot].transform.position = weaponStow.position;
+            activeWeaponSlot = Wrap(activeWeaponSlot + direction, weaponSlots);
+            if (SelectFireWeapon() == null)
+            {
+                activeWeaponSlot = Wrap(activeWeaponSlot - direction, weaponSlots);
+            }
+            weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
+            weaponSlots[activeWeaponSlot].SetActive(true);
         }
-        weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
-        weaponSlots[activeWeaponSlot].SetActive(true);
     }
     private void SwapSpecificSlot(int slot){
         if (slot > weaponSlots.Count){
@@ -114,7 +119,7 @@ public class PlayerGunInteraction : MonoBehaviour
             Debug.Log("Raycast hit " + hit.collider.gameObject.name);
             if (hit.collider.gameObject.tag == "Interact")
             {
-                // Do interact code
+                InteractHit(hit.collider.gameObject);
             }
             else if (hit.collider.gameObject.tag == "Weapon")
             {
@@ -125,7 +130,7 @@ public class PlayerGunInteraction : MonoBehaviour
                     weaponSlots[activeWeaponSlot].transform.SetParent(null, true);
                     weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = false;
                     weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = true;
-                } else {
+                } else if (!weaponSlots.Contains(hit.collider.gameObject)){
                     weaponSlots.Add(hit.collider.gameObject);
                 }
                 weaponSlots[activeWeaponSlot].transform.SetParent(playerHead.transform, true);
@@ -133,8 +138,10 @@ public class PlayerGunInteraction : MonoBehaviour
                 weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = false;
                 weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
                 weaponSlots[activeWeaponSlot].transform.rotation = weaponHold.rotation;
-                //TODO set the rotation as well
             }
         }
+    }
+    private void InteractHit(GameObject hit){
+        
     }
 }

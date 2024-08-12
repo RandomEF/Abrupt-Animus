@@ -15,6 +15,7 @@ public class PlayerLook : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         lookAction = manager.GetComponent<PlayerManager>().inputs.Player.Look;
+        //gameObject.transform.SetParent(playerBody.transform, true);
     }
 
     // Update is called once per frame
