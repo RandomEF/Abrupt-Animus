@@ -1884,7 +1884,7 @@ MonoBehaviour:
     type: 3}
   dialogueManager: {fileID: 0}
   dialogueFile: {fileID: 102900000, guid: f136623435ed5554e8ed7c056346e5f1, type: 3}
-  nextLine: 1
+  nextLine: 2
 --- !u!1 &1660727908
 GameObject:
   m_ObjectHideFlags: 0
