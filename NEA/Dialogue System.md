@@ -29,8 +29,8 @@ Colour information will be marked with "<>"
 
 Dialogue sections will be marked in \[]
 	These will allow for multiple interacts
-	A number at the end of the dialog section will mark the number interact it is
 	The final one will repeat
+	-> will take the the lines to the next section
 Choices are marked with | where the first choice is considered the title
 Variables which can point to external events will be marked with @ and its value will be checked with the basic comparison operators
 	Using a -> the 'if' statement can be redirected to a dialogue section

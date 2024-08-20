@@ -11,6 +11,6 @@ public class DialogueManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // must handle the searching for gameobjects related to their name based off actor names or a special hashing system
     }
 }
