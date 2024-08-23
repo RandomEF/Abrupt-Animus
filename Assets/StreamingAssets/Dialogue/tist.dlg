@@ -7,10 +7,12 @@
 @choice==1->choice1
 @choice==2->choice2
 [choice1]
-#L5
-@end>=1->end
+#A1::#L5
+@end>=choice->end
 [choice2]
-#L6
+#A1::#L6
 ->end
 [end]
-#L7
+@end=1
+#A1:-1
+#A1::#L7

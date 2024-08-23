@@ -80,7 +80,6 @@ public class DialogueInteraction : MonoBehaviour
         return copy;
     }
     // DLG Interpreter
-    private string[] operators = {"==", "<=", ">=", "!="};
     private int choice = 0;
     private int lineNumber = 0;
     /*
@@ -92,14 +91,23 @@ public class DialogueInteraction : MonoBehaviour
     @ is variable
     = is variable assign
     */
-    public string[] RetrieveNextLine(){
+    public (string, string, string[]) RetrieveNextLine(){
         TreeNode tokenTree = Tokenizer();
-        string[] lines = Analyzer(tokenTree);
-        string[] convertedLines = new string[lines.Length];
-        for(int i = 0; i < lines.Length; i++){
-            convertedLines[i] = ConvertLine(lines[i]);
+        (string, string, string[]) returnVals = Analyzer(tokenTree);
+        string type = returnVals.Item1;
+        if (type == "choice"){
+            string[] lines = returnVals.Item3;
+            string[] convertedLines = new string[lines.Length];
+            for(int i = 0; i < lines.Length; i++){
+                convertedLines[i] = ConvertLine(lines[i]);
+            }
+            return (type, returnVals.Item2, convertedLines); // returnVals.Item2 will be blank as the actor is assumed to be the player, but this must be passed through to fulfill the return type conditions
+        } else if (type == "facing"){
+
+        } else if (type == "line"){
+            string actor = returnVals.Item2;
+            string line = ConvertLine(returnVals.Item3[0]);
         }
-        return convertedLines;
     }
     private TreeNode Tokenizer(){
         if (fileReader == null){
@@ -149,6 +157,13 @@ public class DialogueInteraction : MonoBehaviour
                 ReadJump(line, lineTree);
             } else if (token == '|'){
                 ReadChoice(line, lineTree);
+            } else if (token == ':'){
+                token = ReadChar(line);
+                if (token ==  ':'){
+                    ReadSeparator(line, lineTree);
+                } else if (token == '-'){
+                    ReadAnimation(line, lineTree);
+                }
             } else {
                 throw new System.Exception($"The starting character '{token}' was not recognised.");
             }
@@ -200,19 +215,25 @@ public class DialogueInteraction : MonoBehaviour
     private void ReadIf(StreamReader line, TreeNode lineTree){
         TreeNode ifNode = new TreeNode();
         lineTree.AddChild(ifNode);
+        ReadVariable(line, ifNode);
+        ReadOperator(line, ifNode);
         ifNode.AddType("if");
-        ifNode.value.Add("var", ReadVariable(line));
-        ifNode.value.Add("op", ReadOperator(line));
+        //ifNode.value.Add("op");
         char character = PeekChar(line);
         if (Char.IsNumber(character)){
-            ifNode.value.Add("num", ReadNumber(line).ToString());
+            TreeNode numNode = new TreeNode();
+            ifNode.AddChild(numNode);
+            numNode.AddType("num");
+            numNode.value.Add("num", ReadNumber(line).ToString());
         } else if (Char.IsLetter(character) || character == '_'){
-            ifNode.value.Add("var", ReadVariable(line));
+            ReadVariable(line, ifNode);
         } else {
             throw new Exception("Nothing valid to compare to.");
         }
     }
-    private string ReadVariable(StreamReader line){
+    private void ReadVariable(StreamReader line, TreeNode lineTree){
+        TreeNode variableNode = new TreeNode();
+        lineTree.AddChild(variableNode);
         string variable = "";
         char character = PeekChar(line);
         if(Char.IsNumber(character)){
@@ -226,18 +247,29 @@ public class DialogueInteraction : MonoBehaviour
                 break;
             }
         }
-        return variable;
+        variableNode.AddType("var");
+        variableNode.value.Add("var", variable); 
     }
-    private string ReadOperator(StreamReader line){
+    private string ReadOperator(StreamReader line, TreeNode lineTree){
         string op = "";
         char[] opChars = {'!', '>', '<', '='};
+        //string[] operators = {"==", "<=", ">=", "!="};
+        TreeNode opNode = new TreeNode();
+        lineTree.AddChild(opNode);
         while (!line.EndOfStream){
             char character = PeekChar(line);
-            if(opChars.Contains(character)){
-                op += character;
-            }
-            if (operators.Contains(op)){
+            if(op.Length == 0 && opChars.Contains(character)){
+                op += ReadChar(line);
+            } else if (op.Length == 1 && character == '='){
+                op += ReadChar(line);
+                opNode.AddType("comp");
+                opNode.value.Add("op", op);
                 return op;
+            } else if (op.Length == 1 && op == "="){
+                opNode.AddType("assign");
+                return op;
+            } else {
+                throw new Exception($"Invalid operator '{op}'.");
             }
         }
         throw new Exception($"No valid operator found: '{op}'");
@@ -273,13 +305,68 @@ public class DialogueInteraction : MonoBehaviour
             choiceNode.value.Add("end", "true");
         }
     }
+    private void ReadSeparator(StreamReader line, TreeNode lineTree){
+        char character = PeekChar(line);
+        if (character == ':'){
+            ReadChar(line);
+            TreeNode separatorNode = new TreeNode();
+            separatorNode.AddType("sep");
+            lineTree.AddChild(separatorNode);
+        }
+    }
+    private void ReadAnimation(StreamReader line, TreeNode lineTree){
+        char character = PeekChar(line);
+        if (character == '-'){
+            ReadChar(line);
+            TreeNode animNode = new TreeNode();
+            lineTree.AddChild(animNode);
+            animNode.AddType("anim");
+            animNode.value.Add("num", ReadNumber(line).ToString());
+        }
+    }
     // Analysis
-    private string[] Analyzer(TreeNode fileTree){
+    private (string, string, string[]) Analyzer(TreeNode fileTree){
         string[] lines = new string[fileTree.GetChildren().Count];
+        string returnType;
         for (int i = 0; i < fileTree.GetChildren().Count; i++)
         {
             TreeNode line = fileTree.GetChildren()[i];
-            
+            List<TreeNode> elements = line.GetChildren();
+            if (elements[0].GetNodeType() == "actor"){
+                if (elements[1].GetNodeType() == "anim"){
+                    returnType = "animation";
+                    string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
+                    string[] animID = {elements[1].value["num"]};
+                    return (returnType, returnActor, animID);
+                } else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "actor"){
+                    returnType = "facing";
+                    string returnActor1 = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
+                    string[] returnActor2 = {RequestNext(false, "actor", Int32.Parse(elements[2].value["id"]))};
+                    return (returnType, returnActor1, returnActor2);
+                } else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "line"){
+                    returnType = "line";
+                    string[] returnLine = {LineAnalysis(elements.GetRange(2, elements.Count - 2))};
+                    string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
+                    return (returnType, returnActor, returnLine);
+                }
+            } else if (elements[0].GetNodeType() == "choice"){
+
+            } else if (elements[0].GetNodeType() == "jump"){
+
+            } else if (elements[0].GetNodeType() == "if"){
+
+            } else {
+                throw new Exception($"Unrecognised node type '{elements[0].GetNodeType()}' found in syntax analysis step.");
+            }
         }
+    }
+    private string LineAnalysis(List<TreeNode> lines){
+        string returnLine = "";
+        for (int j = 0; j < lines.Count; j++)
+        {
+            returnLine += RequestNext(true, "english", Int32.Parse(lines[j].value["id"])) + " ";
+        }
+        returnLine = returnLine[..^1];
+        return returnLine;
     }
 }

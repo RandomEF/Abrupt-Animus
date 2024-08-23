@@ -39,7 +39,20 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Dialogue System.md",
+                "file": "Plan.md",
+                "mode": "source",
+                "backlinks": false,
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "1b895adba94e88a5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Zones.md",
                 "mode": "source",
                 "backlinks": false,
                 "source": false
@@ -47,7 +60,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -113,7 +126,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Dialogue System.md",
+                "file": "Zones.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -130,7 +143,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Dialogue System.md",
+                "file": "Zones.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -153,7 +166,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Dialogue System.md"
+                "file": "Zones.md"
               }
             }
           },
@@ -198,15 +211,16 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "2ceb8d58d80f1b23",
+  "active": "1b895adba94e88a5",
   "lastOpenFiles": [
-    "Mechanics.md",
+    "Plan.md",
+    "Zones.md",
     "Dialogue System.md",
+    "Mechanics.md",
     "Controls.md",
     "Theme.md",
     "Ideas.md",
     "Easter Eggs.md",
-    "Plan.md",
     "Lore.md",
     "Plan.txt",
     "Plan - Copy.md",
@@ -234,7 +248,6 @@
     "Mathematics/Large Data Set/Ranges.md",
     "Mathematics/Large Data Set/International Locations.png",
     "Mathematics",
-    "Computer Science/Data Structures/Arrays-Lists-Tuples-Records.md",
     "Computer Science/System Software",
     "Computer Science/Data Structures",
     "Computer Science/IOS"
