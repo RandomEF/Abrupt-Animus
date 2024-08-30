@@ -14,7 +14,7 @@ public class DialogueInteraction : MonoBehaviour
     private List<(int, string)> actorsInInteraction = new List<(int, string)>();
     public UnityEngine.Object dialogueFile;
     private string filepath;
-    [SerializeField] private List<(int, string)> dialogueSections = new List<(int, string)>();
+    [SerializeField] private Dictionary<string, int> dialogueSections = new Dictionary<string, int>();
     private StreamReader fileReader;
     void Start()
     {
@@ -29,7 +29,7 @@ public class DialogueInteraction : MonoBehaviour
         while(!reader.EndOfStream){
             string line = reader.ReadLine();
             if(line.StartsWith("[") && line.EndsWith("]")){
-                dialogueSections.Add((lineNumber, line[1..^1]));
+                dialogueSections.Add(line[1..^1], lineNumber);
             }
             lineNumber++;
         }
@@ -92,21 +92,27 @@ public class DialogueInteraction : MonoBehaviour
     = is variable assign
     */
     public (string, string, string[]) RetrieveNextLine(){
-        TreeNode tokenTree = Tokenizer();
-        (string, string, string[]) returnVals = Analyzer(tokenTree);
-        string type = returnVals.Item1;
-        if (type == "choice"){
-            string[] lines = returnVals.Item3;
-            string[] convertedLines = new string[lines.Length];
-            for(int i = 0; i < lines.Length; i++){
-                convertedLines[i] = ConvertLine(lines[i]);
+        while (true){
+            TreeNode tokenTree = Tokenizer();
+            (string, string, string[]) returnVals = Analyzer(tokenTree);
+            string type = returnVals.Item1;
+            if (type == "true"){
+                continue;
             }
-            return (type, returnVals.Item2, convertedLines); // returnVals.Item2 will be blank as the actor is assumed to be the player, but this must be passed through to fulfill the return type conditions
-        } else if (type == "facing"){
 
-        } else if (type == "line"){
-            string actor = returnVals.Item2;
-            string line = ConvertLine(returnVals.Item3[0]);
+            if (type == "choice"){
+                string[] lines = returnVals.Item3;
+                string[] convertedLines = new string[lines.Length];
+                for(int i = 0; i < lines.Length; i++){
+                    convertedLines[i] = ConvertLine(lines[i]);
+                }
+                return (type, returnVals.Item2, convertedLines); // returnVals.Item2 will be blank as the actor is assumed to be the player, but this must be passed through to fulfill the return type conditions
+            } else if (type == "facing"){
+
+            } else if (type == "line"){
+                string actor = returnVals.Item2;
+                string line = ConvertLine(returnVals.Item3[0]);
+            }
         }
     }
     private TreeNode Tokenizer(){
@@ -293,11 +299,12 @@ public class DialogueInteraction : MonoBehaviour
         TreeNode choiceNode = new TreeNode();
         choiceNode.AddType("choice");
         lineTree.AddChild(choiceNode);
-        ReadID(line, lineTree);
         if (!line.EndOfStream){
             char character = ReadChar(line);
             if (character == ','){
                 choiceNode.value.Add("end", "false");
+            } else if (character == '#'){
+                ReadID(line, lineTree);
             } else {
                 throw new Exception($"Unrecognised character '{character}' following choice line");
             }
@@ -327,7 +334,8 @@ public class DialogueInteraction : MonoBehaviour
     // Analysis
     private (string, string, string[]) Analyzer(TreeNode fileTree){
         string[] lines = new string[fileTree.GetChildren().Count];
-        string returnType;
+        string returnType = "none";
+        string[] returnLines = new string[lines.Length];
         for (int i = 0; i < fileTree.GetChildren().Count; i++)
         {
             TreeNode line = fileTree.GetChildren()[i];
@@ -345,20 +353,48 @@ public class DialogueInteraction : MonoBehaviour
                     return (returnType, returnActor1, returnActor2);
                 } else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "line"){
                     returnType = "line";
-                    string[] returnLine = {LineAnalysis(elements.GetRange(2, elements.Count - 2))};
+                    returnLines[i] = LineAnalysis(elements.GetRange(2, elements.Count - 2));
                     string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
-                    return (returnType, returnActor, returnLine);
+                    return (returnType, returnActor, returnLines);
+                } else if (elements[1].GetNodeType() == "anim"){
+                    returnType = "anim";
+                    string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
+                    string[] animID = {elements[1].value["num"]};
+                    return (returnType, returnActor, returnLines);
+                } else {
+                    throw new Exception("Unable to progress after discovering actor in analysis.");
                 }
             } else if (elements[0].GetNodeType() == "choice"){
-
+                returnType = "choice";
+                TreeNode child = elements[0].GetChildren()[0];
+                returnLines[i] = LineAnalysis(elements.GetRange(1, elements.Count - 1));
             } else if (elements[0].GetNodeType() == "jump"){
-
+                returnType = "true";
+                JumpToSection(elements[0]);
+                return (returnType, null, null);
             } else if (elements[0].GetNodeType() == "if"){
+                int value;
+                if (elements[2].GetNodeType() == "var"){
+                    // Get value of variable
+                    // value == varValue
+                } else if (elements[2].GetNodeType() == "num"){
+                    value = Int32.Parse(elements[2].value["num"]);
+                }
 
+                if (elements[1].GetNodeType() == "assign"){
+                    
+                } else if (elements[1].GetNodeType() == "comp"){
+                    int variableFirst;
+                    //bool passed = EvalComparison(variableFirst, elements[1].value["op"], value);
+                    // have goto if comp is true
+                }
+                returnType = "true";
+                return (returnType, null, null);
             } else {
                 throw new Exception($"Unrecognised node type '{elements[0].GetNodeType()}' found in syntax analysis step.");
             }
         }
+        return (returnType, null, returnLines);
     }
     private string LineAnalysis(List<TreeNode> lines){
         string returnLine = "";
@@ -368,5 +404,23 @@ public class DialogueInteraction : MonoBehaviour
         }
         returnLine = returnLine[..^1];
         return returnLine;
+    }
+    private void JumpToSection(TreeNode jumpNode){
+        string section = jumpNode.value["section"];
+        lineNumber = dialogueSections[section] + 1;
+    }
+    private bool EvalComparison(int variable, string op, int compareTo){
+        switch(op){
+            case "==":
+                return variable == compareTo;
+            case ">=":
+                return variable >= compareTo;
+            case "<=":
+                return variable <= compareTo;
+            case "!=":
+                return variable != compareTo;
+            default:
+                throw new Exception($"{op} is not a valid comparison operator");
+        }
     }
 }

@@ -1,13 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class Gun : MonoBehaviour
+public class Gun : Weapon
 {
     [SerializeField] private GameObject bullet;
     [SerializeField] private Transform barrel;
+    public override string WeaponType { get => "Gun";}
 
-    public void Fire(){
+    override public void Fire(){
         Instantiate(bullet, barrel.transform.position, barrel.rotation);
         Debug.Log("Fired " + gameObject.name);
     }

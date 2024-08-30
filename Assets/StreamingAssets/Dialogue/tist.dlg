@@ -8,11 +8,11 @@
 @choice==2->choice2
 [choice1]
 #A1::#L5
-@end>=choice->end
+@seenTutorial>=choice->end
 [choice2]
 #A1::#L6
 ->end
 [end]
-@end=1
+@seenTutorial=1
 #A1:-1
-#A1::#L7
+#A1::#L6#L7

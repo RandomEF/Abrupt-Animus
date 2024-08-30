@@ -58,9 +58,22 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "a020e9231232edce",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Data.md",
+                "mode": "source",
+                "backlinks": false,
+                "source": false
+              }
+            }
           }
         ],
-        "currentTab": 3
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -126,7 +139,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Zones.md",
+                "file": "Data.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -143,7 +156,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Zones.md",
+                "file": "Data.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -166,7 +179,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Zones.md"
+                "file": "Data.md"
               }
             }
           },
@@ -211,10 +224,11 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "1b895adba94e88a5",
+  "active": "a020e9231232edce",
   "lastOpenFiles": [
-    "Plan.md",
     "Zones.md",
+    "Data.md",
+    "Plan.md",
     "Dialogue System.md",
     "Mechanics.md",
     "Controls.md",
@@ -245,7 +259,6 @@
     "Physics/Mechanics",
     "Physics",
     "Mathematics/Large Data Set/UK Locations.png",
-    "Mathematics/Large Data Set/Ranges.md",
     "Mathematics/Large Data Set/International Locations.png",
     "Mathematics",
     "Computer Science/System Software",
