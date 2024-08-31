@@ -7,8 +7,6 @@ public class LevelHighscores
     public LevelHighscores(){
         level1 = new HighscoreData();
     }
-    public void UpdateData(){
-    }
 }
 
 [System.Serializable]

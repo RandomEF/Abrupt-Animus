@@ -14,8 +14,8 @@ public class SaveData
     }
     public void UpdateSaveData() {
         playerData.UpdateData();
-        worldFlags.UpdateData();
-        levelBullets.UpdateData();
-        levelHighscores.UpdateData();
+        //worldFlags.UpdateData(); No need to update, since they are updated the instant they change and same for the 2 below
+        //levelBullets.UpdateData();
+        //levelHighscores.UpdateData();
     }
 }

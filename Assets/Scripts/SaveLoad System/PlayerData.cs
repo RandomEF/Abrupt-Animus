@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class PlayerData
@@ -9,7 +11,10 @@ public class PlayerData
     public GameObject player;
     [JsonIgnore]
     public GameObject camera;
+    [JsonIgnore]
+    public PlayerManager playerManager;
 
+    public string currentScene;
     public float health;
     public SerVector3 position;
     public SerVector3 velocity;
@@ -23,6 +28,7 @@ public class PlayerData
     public int totalKills;
 
     public PlayerData(){
+        currentScene = "tutorial";
         health = 100f;
         position = new SerVector3(0,0,0);
         velocity = new SerVector3(0,0,0);
@@ -36,15 +42,21 @@ public class PlayerData
         totalKills = 0;
     }
     public void UpdateData(){
+        currentScene = SceneManager.GetActiveScene().name;
         health = player.GetComponent<PlayerEntity>().Health;
         position = player.transform.position;
         velocity = player.GetComponent<Rigidbody>().linearVelocity;
         bodyRotation = player.transform.rotation;
         lookRotation = camera.transform.rotation;
         foreach (GameObject weapon in player.GetComponent<PlayerGunInteraction>().weaponSlots){
-            //Weapon weaponScript = weapon.GetComponent<Weapon>();
-            //weaponSlots.Add(new WeaponData(weapon.GetComponent<Weapon>.weaponName,))
+            Weapon weaponScript = weapon.GetComponent<Weapon>();
+            weaponSlots.Add(new WeaponData(weaponScript.WeaponType, weaponScript.TotalAmmo, weaponScript.AmmoInClip));
         }
+        activeWeaponSlot = player.GetComponent<PlayerGunInteraction>().activeWeaponSlot;
+        merit = playerManager.merit;
+        sanity = playerManager.sanity;
+        timeOnSave += Time.realtimeSinceStartup;
+        totalKills = playerManager.totalKills;
     }
 }
 

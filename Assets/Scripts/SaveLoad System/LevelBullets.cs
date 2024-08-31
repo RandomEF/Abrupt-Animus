@@ -5,8 +5,6 @@ public class LevelBullets
     public LevelBullets(){
         level1 = new BulletSaveData[50];
     }
-    public void UpdateData(){
-    }
 }
 [System.Serializable]
 public class BulletSaveData{
