@@ -11,6 +11,8 @@ public class PlayerManager : MonoBehaviour
 
     void Awake()
     {
+        //DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(player);
         inputs = new PlayerInputs();
         inputs.Player.Enable(); // Enabling only the Player input map
         saveData = new SaveData();

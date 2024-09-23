@@ -16,6 +16,7 @@ public class PlayerData
 
     public string currentScene;
     public float health;
+    public float maxHealth;
     public SerVector3 position;
     public SerVector3 velocity;
     public SerQuaternion bodyRotation;
@@ -28,7 +29,7 @@ public class PlayerData
     public int totalKills;
 
     public PlayerData(){
-        currentScene = "tutorial";
+        currentScene = "Tutorial";
         health = 100f;
         position = new SerVector3(0,0,0);
         velocity = new SerVector3(0,0,0);

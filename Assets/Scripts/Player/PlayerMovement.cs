@@ -66,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
         sprinting,
         boosting,
         wallrunning,
-    } 
+    }
     private void Start() {
         playerLayer = LayerMask.GetMask("Standable");
 
