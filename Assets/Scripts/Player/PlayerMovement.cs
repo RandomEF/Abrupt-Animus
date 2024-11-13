@@ -1,3 +1,4 @@
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,6 +24,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("Jumping")]
     [SerializeField] private float gravity = -9.81f;
     [SerializeField] private float jumpForce = 3.5f;
+    [SerializeField] private int airJumpsTotal = 1;
+    [SerializeField] private int airJumpsLeft = 1;
 
     [Header("Movement")]
     [SerializeField] public PlayerMovementState movementState;
@@ -43,6 +46,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool wasSliding = false;
     [SerializeField] private float startedSliding;
     [SerializeField] private bool slideCapSet;
+
+    [Header("Wallrunning")]
+    [SerializeField] private Vector3 wallNormal;
+    [SerializeField] private bool stuckToWall;
+
 
     [Header("Speed Caps")]
     [SerializeField] private float maxCrouchSpeed = 4.5f;
@@ -80,6 +88,7 @@ public class PlayerMovement : MonoBehaviour
         playerInputs.Player.Boost.performed += Boost;
 
         movementState = PlayerMovementState.idle;
+        airJumpsLeft = airJumpsTotal;
     }
     private void Update() {
         velocity = player.linearVelocity;
@@ -89,13 +98,23 @@ public class PlayerMovement : MonoBehaviour
 
         //isGrounded = GroundCheck();
         SetMovementState(crouching);
-        Crouch();
-        Gravity();
-        Movement();
+        
+        if (movementState == PlayerMovementState.wallrunning){
+            holdCrouch = false;
+            toggleCrouch = false;
+            lastHoldCrouchState = false;
+            Wallrun();
+        } else {
+            Crouch();
+            Gravity();
+            Movement();
+        }
         lastMovementState = movementState;
     }
     private void SetMovementState(bool isCrouched){
-        if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding){
+        if (stuckToWall){
+            movementState = PlayerMovementState.wallrunning;
+        } else if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding){
             movementState = PlayerMovementState.crouching;
             wasSliding = false;
         } else if (groundVelocity.magnitude > maxWalkSpeed && isCrouched){
@@ -109,7 +128,7 @@ public class PlayerMovement : MonoBehaviour
             if (!wasSliding){
                 wasSliding = true;
                 startedSliding = Time.time;
-                maxSlidingSpeed = groundVelocity.magnitude + 50f;
+                maxSlidingSpeed = groundVelocity.magnitude + 10f;
             }
             if (slideCapSet){
                 maxSlidingSpeed = groundVelocity.magnitude;
@@ -263,14 +282,32 @@ public class PlayerMovement : MonoBehaviour
 
         player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
+    private void Wallrun(){
+        ;
+    }
     private void Jump(InputAction.CallbackContext inputType){
         /*
-        Jumping should provide a forward boost in the input direction held.
-        Jumping in mid air should also you to change direction.
-        TODO Test if double jumping backwards at high speeds changes directions
-        */
+        Vector3 direction = inputDirection == Vector2.zero ? groundVelocity.normalized : player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
+        direction.y += 1;
+        
+        direction *= jumpForce;
+        if (movementState == PlayerMovementState.wallrunning){
+            direction += -wallNormal * jumpForce * 2;
+        }
+        float alignment = Vector3.Dot(groundVelocity.normalized, inputDirection);
+        if (alignment < 0){
+            direction += -groundVelocity;
+        }*/
+        Vector3 direction = Vector3.up * jumpForce;
+        if (velocity.y < 0){
+            direction.y += -velocity.y;
+        }
         if (isGrounded){
-            player.AddForce(Vector3.up * jumpForce + new Vector3(0, velocity.y, 0), ForceMode.VelocityChange);
+            Debug.Log("yump");
+            player.AddForce(direction, ForceMode.VelocityChange);
+        } else if (airJumpsLeft > 0){
+            player.AddForce(direction, ForceMode.VelocityChange);
+            airJumpsLeft--;
         }
     }
     private void Boost(InputAction.CallbackContext inputType){
@@ -288,9 +325,12 @@ public class PlayerMovement : MonoBehaviour
                 float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
                 
                 if (slopeAngle > maxSlope){
-                    // uh do something
+                    airJumpsLeft = airJumpsTotal;
+                    wallNormal = contact.normal;
+                    Wallrun();
                 } else{
                     isGrounded = true;
+                    airJumpsLeft = airJumpsTotal;
                     groundNormal = contact.normal;
                 }
             }

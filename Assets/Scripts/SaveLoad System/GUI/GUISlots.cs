@@ -20,10 +20,11 @@ public class GUISlots : MonoBehaviour
         foreach (SaveSlot slot in slots){
             GameObject slotInList = Instantiate(slotPrefab, gameObject.transform);
             var image = slotInList.transform.GetChild(0);
-            TMP_Text number = slotInList.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
-            TMP_Text time = slotInList.transform.GetChild(2).gameObject.GetComponent<TMP_Text>();
-            TMP_Text scene = slotInList.transform.GetChild(3).gameObject.GetComponent<TMP_Text>();
-            var saves = slotInList.transform.GetChild(4);
+            slotInList.transform.GetChild(1).GetComponent<SelectSlot>().dataPath = slot.dataPath;
+            TMP_Text number = slotInList.transform.GetChild(2).gameObject.GetComponent<TMP_Text>();
+            TMP_Text time = slotInList.transform.GetChild(3).gameObject.GetComponent<TMP_Text>();
+            TMP_Text scene = slotInList.transform.GetChild(4).gameObject.GetComponent<TMP_Text>();
+            var saves = slotInList.transform.GetChild(5);
             number.text = slot.number;
             time.text = TimeSpan.FromSeconds(slot.time).ToString();
             scene.text = slot.sceneName;

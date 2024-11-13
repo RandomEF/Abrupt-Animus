@@ -26,26 +26,32 @@ public static class SaveSystem
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
             stream.Write(json); // Fill with constructed save data
         }
+        // Modify Lookup
+        Dictionary<string, string> lookup = GetLookup();
+        lookup[$"Slot{saveSlot}"] = path;
+        List<string> keys = new List<string>(lookup.Keys);
+        List<string> values = new List<string>(lookup.Values);
+
+        using (StreamWriter lookupWriter = new StreamWriter(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))){
+            for (int i = 0; i < keys.Count; i++)
+            {
+                lookupWriter.WriteLine(keys[i] + "," + values[i]);
+            }
+        }
     }
     public static SaveData LoadSave(string path){
         SaveData data;
         using (StreamReader sr = new StreamReader(path)){
-            data = (SaveData)JsonConvert.DeserializeObject(sr.ReadToEnd());
+            data = JsonConvert.DeserializeObject<SaveData>(sr.ReadToEnd());
         }
+        
         return data;
     }
     public static List<SaveSlot> ListAllSlots(){
-        if (!Directory.Exists(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))){
-            File.Create(Path.Combine(Application.persistentDataPath, "SaveLookup.txt")).Close();
+        Dictionary<string, string> lookupPairs = GetLookup();
+        if (lookupPairs == null){
             return new List<SaveSlot>();
         }
-
-        string[] pathLookup = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"));
-        Dictionary<string, string> lookupPairs = new Dictionary<string, string>();
-        foreach (string lookup in pathLookup){
-            string[] pairArray = lookup.Split(',');
-            lookupPairs.Add(pairArray[0], pairArray[1]);
-        } 
         string path = Path.Combine(Application.persistentDataPath, "Saves");
         string[] directories = Directory.GetDirectories(path);
         List<SaveSlot> slotList = new List<SaveSlot>();
@@ -57,6 +63,19 @@ public static class SaveSystem
         }
         return slotList;
     }
+    public static Dictionary<string, string> GetLookup(){
+        if (!File.Exists(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))){
+            File.Create(Path.Combine(Application.persistentDataPath, "SaveLookup.txt")).Close();
+        }
+
+        string[] pathLookup = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"));
+        Dictionary<string, string> lookupPairs = new Dictionary<string, string>();
+        foreach (string lookup in pathLookup){
+            string[] pairArray = lookup.Split(',');
+            lookupPairs.Add(pairArray[0], pairArray[1]);
+        }
+        return lookupPairs;
+    }
     public static SaveData NewSave(){
         
         SaveData data = new SaveData();
@@ -64,7 +83,9 @@ public static class SaveSystem
             Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Saves"));
         }
         string[] dirs = Directory.GetDirectories(Path.Combine(Application.persistentDataPath, "Saves"));
-        Array.Sort(dirs);
+        Array.Sort(dirs, (s1, s2) => 
+            Int32.Parse(Regex.Match(s1, @"\d+$").ToString()).CompareTo(Int32.Parse(Regex.Match(s2, @"\d+$").ToString()))
+        );
         int dirNum = 1;
         if (dirs.Length > 0){
             string lastDir = dirs[^1];
@@ -86,14 +107,10 @@ public static class SaveSystem
             saveWriter.Write(json);
         }
         // Modify the lookup
-        if (!Directory.Exists(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))){
+        if (!File.Exists(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))){
             File.Create(Path.Combine(Application.persistentDataPath, "SaveLookup.txt")).Close();
         }
         File.AppendAllText(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"), $"{folderName},{path}\n");
-        // using (StreamWriter saveLookup = File.AppendAllText(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))){
-        //     string pair = folderName + "," + path;
-        //     saveLookup.WriteLine(pair);
-        // }
         return data;
     }
 }

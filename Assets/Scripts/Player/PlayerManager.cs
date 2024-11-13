@@ -8,6 +8,7 @@ public class PlayerManager : MonoBehaviour
     public int merit = 0;
     public float sanity = 100f;
     public int totalKills;
+    public int currentSlot = 1;
 
     void Awake()
     {
@@ -22,6 +23,10 @@ public class PlayerManager : MonoBehaviour
     }
     void SaveGame(){
         saveData.UpdateSaveData();
-        SaveSystem.Save(saveData, "Manual", 1);
+        SaveSystem.Save(saveData, "Manual", currentSlot);
+    }
+    public void SetSlotandData(int slot, SaveData data){
+        currentSlot = slot;
+        saveData = data;
     }
 }
