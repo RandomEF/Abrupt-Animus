@@ -1,0 +1,46 @@
+procedure Gravity()
+    if NOT isGrounded then
+        player.AddForce(gravity * Time.deltaTime, ForceMode.VelocityChange)
+    endif
+endprocedure
+
+procedure SetPlayerDimensions(height, radius)
+    previousHeight = playerCollider.height
+    playerCollider.height = height
+    player.transform.position = player.transform.position - Vector3(0, (previousHeight - height)/2, 0)
+endprocedure
+
+procedure Crouch()
+    if lastMovementState != movementState then
+        if movementState == PlayerMovementState.crouching OR movementState == PlayerMovementState.sliding then
+            SetPlayerDimensions(crouchingHeight, playerRadius)
+        else
+            SetPlayerDimensions(standingHeight, playerRadius)
+        endif
+    endif
+endprocedure
+
+function CrouchControlState()
+    holdCrouch = playerInputs.Player.HoldCrouch.inProgress
+    if playerInputs.Player.toggleCrouch.triggered then
+        if toggleCrouch == true then
+            toggleCrouch = false
+        else
+            toggleCrouch = true
+        endif
+    endif
+    if holdCrouch == true then
+        lastHoldCrouchState = true
+        return true
+    else
+        if lastHoldCrouchState == true then
+            toggleCrouch = false
+        endif
+        lastHoldCrouchState = false
+        return toggleCrouch
+    endif
+endfunction
+
+procedure Movement()
+    
+endprocedure

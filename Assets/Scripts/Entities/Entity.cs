@@ -11,7 +11,7 @@ public abstract class Entity : MonoBehaviour
     public float DefenseMultiplier { get {return defenseMultiplier;} set {defenseMultiplier = value;}}
     public float HealingMultiplier { get {return healingMultiplier;} set {healingMultiplier = value;}}
 
-    public void Start(){
+    public virtual void Start(){
         Health = MaxHealth;
     }
 

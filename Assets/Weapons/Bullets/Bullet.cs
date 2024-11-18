@@ -13,7 +13,7 @@ public class Bullet : MonoBehaviour
                 hit.SendMessage("Damage", damage);
             }
         }
-        Debug.Log("Did stuff");
+        Debug.Log("Dealt damage");
         Destroy(gameObject);
     }
 }

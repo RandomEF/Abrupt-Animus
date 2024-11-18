@@ -1,5 +1,6 @@
 using System;
 using Unity.VisualScripting;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,7 +19,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool isGrounded = false;
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] public float groundDistance = 0.03f;
-    [SerializeField] public float maxSlope = 60f;
+    [SerializeField] public float maxSlope;
     [SerializeField] public Vector3 groundNormal = Vector3.up;
 
     [Header("Jumping")]
@@ -87,6 +88,8 @@ public class PlayerMovement : MonoBehaviour
         playerInputs.Player.Jump.performed += Jump;
         playerInputs.Player.Boost.performed += Boost;
 
+        maxSlope = GlobalConstants.maxSlope;
+
         movementState = PlayerMovementState.idle;
         airJumpsLeft = airJumpsTotal;
     }
@@ -108,6 +111,10 @@ public class PlayerMovement : MonoBehaviour
             Crouch();
             Gravity();
             Movement();
+        }
+        if (inputDirection.magnitude == 0 && groundVelocity.magnitude < 0.1f){
+            velocity.x = 0;
+            velocity.z = 0;
         }
         lastMovementState = movementState;
     }
@@ -217,22 +224,19 @@ public class PlayerMovement : MonoBehaviour
         if (speed == null){
             speed = groundVelocity;
         }
-        float clampedMagnitude;
+        float clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, MaxSpeed()).magnitude;
         float acceleration;
         switch (movementState){
             case PlayerMovementState.walking:
-                clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxWalkSpeed).magnitude;
                 acceleration = SpeedFunction(clampedMagnitude, 0.75f, 10);
                 break;
             case PlayerMovementState.sprinting:
-                clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
                 acceleration = SpeedFunction(clampedMagnitude, 1, 15f);
                 break;
             case PlayerMovementState.boosting:
                 acceleration = 10f;
                 break;
             case PlayerMovementState.crouching:
-                clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
                 acceleration = SpeedFunction(clampedMagnitude, 0.45f, 10f);
                 break;
             case PlayerMovementState.sliding:
@@ -267,11 +271,11 @@ public class PlayerMovement : MonoBehaviour
         Vector3 direction = target * maxSpeed - groundVelocity;
         float directionMag = direction.magnitude;
         direction = Vector3.ProjectOnPlane(direction, groundNormal).normalized * directionMag;
-
+        /*
         if (direction.magnitude < 0.5f) // If moving very slowly
         {
             acceleration *= direction.magnitude / 0.5f;
-        }
+        } //* THIS MIGHT BE CAUSING JITTERING*/
 
         if (alignment <= 0){ // If attempting to move in a wildly opposite direction
             acceleration *= 2;
@@ -279,6 +283,12 @@ public class PlayerMovement : MonoBehaviour
 
         direction = direction.normalized * acceleration;
         direction -= direction * FrictionMultiplier();
+        Vector2 directionGround = new Vector2(direction.x, direction.z);
+        if (directionGround.magnitude * Time.deltaTime < 0 && -directionGround.magnitude * Time.deltaTime > groundVelocity.magnitude){
+            Debug.Log("did this");
+            direction.x = -groundVelocity.x/Time.deltaTime;
+            direction.z = -groundVelocity.y/Time.deltaTime;
+        }
 
         player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
