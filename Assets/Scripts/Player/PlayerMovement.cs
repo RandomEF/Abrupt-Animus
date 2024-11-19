@@ -29,6 +29,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private int airJumpsLeft = 1;
 
     [Header("Movement")]
+    [SerializeField] public Vector3 movement;
     [SerializeField] public PlayerMovementState movementState;
     [SerializeField] public PlayerMovementState lastMovementState = PlayerMovementState.idle;
     [SerializeField] private float friction = 0.9f;
@@ -118,6 +119,10 @@ public class PlayerMovement : MonoBehaviour
         }
         lastMovementState = movementState;
     }
+    private void FixedUpdate() {
+        player.AddForce(movement, ForceMode.VelocityChange);
+        movement = Vector3.zero;
+    }
     private void SetMovementState(bool isCrouched){
         if (stuckToWall){
             movementState = PlayerMovementState.wallrunning;
@@ -180,7 +185,8 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Gravity(){
         if (!isGrounded){
-            player.AddForce((Physics.gravity / -9.81f * gravity) * Time.deltaTime, ForceMode.VelocityChange);
+            movement += (Physics.gravity / -9.81f * gravity) * Time.deltaTime;
+            //player.AddForce((Physics.gravity / -9.81f * gravity) * Time.deltaTime, ForceMode.VelocityChange);
         }
     }
     private float FrictionMultiplier(){
@@ -191,7 +197,7 @@ public class PlayerMovement : MonoBehaviour
         } else if (movementState == PlayerMovementState.sliding){
             return 1 - friction;
         } else if (inputDirection.magnitude == 0) {
-            return SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
+            return 1-friction;//SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
         } else {
             return SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1f), 1, 1) - 1;
         }
@@ -228,7 +234,7 @@ public class PlayerMovement : MonoBehaviour
         float acceleration;
         switch (movementState){
             case PlayerMovementState.walking:
-                acceleration = SpeedFunction(clampedMagnitude, 0.75f, 10);
+                acceleration = 10f;//SpeedFunction(clampedMagnitude, 0.75f, 10);
                 break;
             case PlayerMovementState.sprinting:
                 acceleration = SpeedFunction(clampedMagnitude, 1, 15f);
@@ -265,32 +271,35 @@ public class PlayerMovement : MonoBehaviour
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
         float alignment = Vector3.Dot(groundVelocity.normalized, target.normalized);
 
+        //* Above checked for jittering cause
         if (groundVelocity.magnitude > maxSpeed) {
             acceleration *= groundVelocity.magnitude / maxSpeed;
         }
         Vector3 direction = target * maxSpeed - groundVelocity;
         float directionMag = direction.magnitude;
-        direction = Vector3.ProjectOnPlane(direction, groundNormal).normalized * directionMag;
+        direction = Vector3.ProjectOnPlane(direction, groundNormal);//.normalized * directionMag;
         /*
         if (direction.magnitude < 0.5f) // If moving very slowly
         {
             acceleration *= direction.magnitude / 0.5f;
-        } //* THIS MIGHT BE CAUSING JITTERING*/
+        } 
 
         if (alignment <= 0){ // If attempting to move in a wildly opposite direction
             acceleration *= 2;
-        }
+        }*/
 
         direction = direction.normalized * acceleration;
         direction -= direction * FrictionMultiplier();
+        /*
         Vector2 directionGround = new Vector2(direction.x, direction.z);
         if (directionGround.magnitude * Time.deltaTime < 0 && -directionGround.magnitude * Time.deltaTime > groundVelocity.magnitude){
             Debug.Log("did this");
             direction.x = -groundVelocity.x/Time.deltaTime;
             direction.z = -groundVelocity.y/Time.deltaTime;
-        }
+        }*/
 
-        player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
+        movement += direction * Time.deltaTime;
+        //player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
     private void Wallrun(){
         ;
@@ -314,9 +323,11 @@ public class PlayerMovement : MonoBehaviour
         }
         if (isGrounded){
             Debug.Log("yump");
-            player.AddForce(direction, ForceMode.VelocityChange);
+            movement += direction;
+            //player.AddForce(direction, ForceMode.VelocityChange);
         } else if (airJumpsLeft > 0){
-            player.AddForce(direction, ForceMode.VelocityChange);
+            movement += direction;
+            //player.AddForce(direction, ForceMode.VelocityChange);
             airJumpsLeft--;
         }
     }
@@ -325,9 +336,10 @@ public class PlayerMovement : MonoBehaviour
         preBoostVelocity = groundVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : groundVelocity.magnitude;
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
 
-        Vector3 movement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * groundVelocity.magnitude * (boostMultiplier - 1);
-        maxBoostSpeed = velocity.magnitude + movement.magnitude;
-        player.AddForce(movement, ForceMode.VelocityChange);
+        Vector3 boostMovement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * groundVelocity.magnitude * (boostMultiplier - 1);
+        maxBoostSpeed = velocity.magnitude + boostMovement.magnitude;
+        movement += boostMovement;
+        //player.AddForce(boostMovement, ForceMode.VelocityChange);
     }
     public void CollisionDetected(Collision collision){ // This function is called externally by the body
         if (collision.contacts.Length > 0) {

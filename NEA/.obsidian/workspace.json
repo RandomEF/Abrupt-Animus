@@ -81,9 +81,21 @@
               "icon": "lucide-file",
               "title": "Zones"
             }
+          },
+          {
+            "id": "5aa4661ccdb94d40",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.7.7"
+              },
+              "icon": "lucide-file",
+              "title": "Release Notes 1.7.7"
+            }
           }
         ],
-        "currentTab": 4
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -252,7 +264,7 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "9d09ef2d8e0f8b24",
+  "active": "5aa4661ccdb94d40",
   "lastOpenFiles": [
     "AI.md",
     "Dialogue System.md",
