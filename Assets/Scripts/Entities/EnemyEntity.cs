@@ -96,7 +96,7 @@ public class EnemyEntity : Entity
         float movementZ = PIDUpdate(Time.fixedDeltaTime, rb.transform.position.z, target.z, ref lastPosition.z, ref lastError.z, ref storedIntegral.z);
         Vector3 movementTotal = new Vector3(movementX, movementY, movementZ);
         if (movementTotal.magnitude > MaxMoveSpeed){
-            
+            movementTotal = movementTotal * (MaxMoveSpeed/movementTotal.magnitude);
         }
         Debug.DrawRay(rb.transform.position, new Vector3(movementX, 0f, 0f).normalized, Color.red);
         Debug.DrawRay(rb.transform.position, new Vector3(0f, movementY, 0f).normalized, Color.green);
@@ -105,6 +105,8 @@ public class EnemyEntity : Entity
         rb.AddForce(movementTotal);
     }
     protected void Searching(){
+        
+        //TODO Change to a overlapsphere checking angles instead and a singular downwards raycast with no max distance
         for (int i = 0; i < rayCount; i++)
         {
             // Do an circumference to split it in 1 metre sections, then take upper bound then run that many raycasts
@@ -128,6 +130,18 @@ public class EnemyEntity : Entity
         }
     }
     protected void SelectTarget(){
+        bool found = false;
+        Vector3 point = GetClosestPoint(out found);
+        if (!found){
+            searchingTarget.y = rb.transform.position.y - DetectionRange;
+            return;
+        }
+        Vector3 entityToPoint = rb.transform.position - point;
+        if (entityToPoint.magnitude > DetectionRange){
+            searchingTarget = point - entityToPoint.normalized * Random.Range(0, DetectionRange);
+            return;
+        }
+
         bool accessible = false;
         while (!accessible){
             searchingTarget.x = Random.Range(-DetectionRange, DetectionRange);
@@ -149,6 +163,23 @@ public class EnemyEntity : Entity
             }
             accessible = true;
         }
+    }
+    protected Vector3 GetClosestPoint(out bool found){
+        Collider[] colliders = Physics.OverlapSphere(
+            position: rb.transform.position,
+            radius: DetectionRange
+        );
+        found = false;
+        Vector3 point = Vector3.zero;
+        float distSqrd = Mathf.Infinity;
+        foreach (Collider collider in colliders){
+            found = true;
+            if ((rb.transform.position - collider.transform.position).sqrMagnitude < distSqrd){
+                distSqrd = (rb.transform.position - collider.transform.position).sqrMagnitude;
+                point = collider.ClosestPoint(rb.transform.position);
+            }
+        }
+        return point;
     }
     private void UpdateManager(enemyState enemyState){
         // send new state to manager
