@@ -1,0 +1,23 @@
+procedure Update()
+endprocedure
+
+procedure ApplyMovement()
+endprocedure
+
+procedure Searching()
+endprocedure
+
+procedure SelectTarget()
+endprocedure
+
+function GetClosestPoint()
+endfunction
+
+procedure UpdateManager()
+endprocedure
+
+function PIDUpdate()
+endfunction
+
+procedure RotateToTarget()
+endprocedure

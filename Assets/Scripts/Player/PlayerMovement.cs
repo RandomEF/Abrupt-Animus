@@ -53,7 +53,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Vector3 wallNormal;
     [SerializeField] private bool stuckToWall;
 
-
     [Header("Speed Caps")]
     [SerializeField] private float maxCrouchSpeed = 4.5f;
     [SerializeField] private float maxSlidingSpeed = 15f;
@@ -185,7 +184,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Gravity(){
         if (!isGrounded){
-            movement += (Physics.gravity / -9.81f * gravity) * Time.deltaTime;
+            movement += (Physics.gravity / -9.81f * gravity) * Time.fixedDeltaTime;
             //player.AddForce((Physics.gravity / -9.81f * gravity) * Time.deltaTime, ForceMode.VelocityChange);
         }
     }
@@ -298,7 +297,7 @@ public class PlayerMovement : MonoBehaviour
             direction.z = -groundVelocity.y/Time.deltaTime;
         }*/
 
-        movement += direction * Time.deltaTime;
+        movement += direction * Time.fixedDeltaTime;
         //player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
     private void Wallrun(){
@@ -319,7 +318,7 @@ public class PlayerMovement : MonoBehaviour
         }*/
         Vector3 direction = Vector3.up * jumpForce;
         if (velocity.y < 0){
-            direction.y += -velocity.y;
+            direction.y -= velocity.y;
         }
         if (isGrounded){
             Debug.Log("yump");

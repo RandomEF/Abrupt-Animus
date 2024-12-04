@@ -17,6 +17,8 @@ public class PlayerLook : MonoBehaviour
         lookAction = manager.GetComponent<PlayerManager>().inputs.Player.Look;
         //gameObject.transform.SetParent(playerBody.transform, true);
         SceneManager.sceneLoaded += SetCursorLock;
+        Cursor.lockState = CursorLockMode.Locked;
+        SetCursorLock(SceneManager.GetActiveScene(), LoadSceneMode.Single);
     }
 
     // Update is called once per frame
@@ -30,8 +32,11 @@ public class PlayerLook : MonoBehaviour
         transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
     }
     void SetCursorLock(Scene scene, LoadSceneMode _){
+        Debug.Log(scene.name);
         if (scene.name != "TitleMenu"){
             Cursor.lockState = CursorLockMode.Locked;
+        } else {
+            Cursor.lockState = CursorLockMode.None;
         }
     }
 }

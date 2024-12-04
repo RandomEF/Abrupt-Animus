@@ -14,27 +14,7 @@ public class Drone : EnemyEntity
         rb = GetComponent<Rigidbody>();
         playerLayer = LayerMask.GetMask("Player");
     }
-    protected override Vector3 Move(){
-        Vector3 distanceToTarget = target.transform.position - gameObject.transform.position;
-        Vector3 targetDirection = Vector3.forward;
 
-        if (distanceToTarget.magnitude < NearTargetRange){
-            targetDirection = Vector3.back;
-        } else if (distanceToTarget.magnitude > FarTargetRange){
-            targetDirection = Vector3.forward;
-        } // Will auto slow down once within ranges
-        targetDirection = rb.transform.rotation * targetDirection;
-
-        float acceleration = BaseMovementAcceleration;
-        if (rb.linearVelocity.magnitude > MaxMoveSpeed){
-            acceleration *= rb.linearVelocity.magnitude / MaxMoveSpeed;
-        }
-        Vector3 direction = targetDirection * MaxMoveSpeed - rb.linearVelocity;
-        targetDirection = targetDirection.normalized * acceleration;
-
-        return targetDirection -= targetDirection * frictionMultiplier;
-        //rb.AddForce(targetDirection * Time.deltaTime, ForceMode.VelocityChange);
-    }
     protected override void ApplyMovement(Vector3 target)
     {
         float movementX = PIDUpdate(Time.fixedDeltaTime, rb.transform.position.x, target.x, ref lastPosition.x, ref lastError.x, ref storedIntegral.x);

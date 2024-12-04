@@ -1,6 +1,6 @@
 procedure Gravity()
     if NOT isGrounded then
-        player.AddForce(gravity * Time.deltaTime, ForceMode.VelocityChange)
+        movement = movement - gravity * Time.deltaTime
     endif
 endprocedure
 
@@ -42,5 +42,35 @@ function CrouchControlState()
 endfunction
 
 procedure Movement()
-    
+    acceleration = baseMovementAcceleration
+    target = player.rotation * inputDirection
+    alignment = Vector3.Dot(groundVelocity.normalized, target.normalized)
+    if groundVelocity.magnitude > maxSpeed then
+        acceleration = acceleration * groundVelocity.magnitude / maxSpeed
+    endif
+    direction = target * maxSpeed - groundVelocity
+    direction = Vector3.ProjectOnPlane(direction, groundNormal)
+    direction = direction.normalized * acceleration
+    direction = direction - direction * frictionMultiplier
+    movement = movement + direction * Time.deltaTime
+endprocedure
+
+procedure Jump()
+    direction = Vector3.up * jumpForce
+    if velocity.y < 0 then
+        direction.y = direction.y - velocity.y
+    endif
+    if isGrounded == true then
+        movement = movement + direction
+    else if airJumpsLeft > 0 then
+        movement = movement + direction
+        airJumpsLeft = airJumpsLeft - 1
+    endif
+endprocedure
+
+procedure Boost()
+    movementState = movementState.boosting
+    inputDirection = playerInputs.Player.Movement.ReadValue()
+    boostMovement = player.rotation * inputDirection * groundVelocity.magnitude * (boostMultiplier - 1)
+    movement = movement + boostMovement
 endprocedure

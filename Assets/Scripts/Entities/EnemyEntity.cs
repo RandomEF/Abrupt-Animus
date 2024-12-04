@@ -25,9 +25,9 @@ public class EnemyEntity : Entity
     protected GameObject weapon;
     [SerializeField] protected Vector3 velocity;
     public enum enemyState{
+        None,
         Searching,
-        Combat,
-        None
+        Combat
     }
     
     [SerializeField] protected float proportionalGain = 1;
@@ -163,6 +163,7 @@ public class EnemyEntity : Entity
             }
             accessible = true;
         }
+        ResetInitialisation();
     }
     protected Vector3 GetClosestPoint(out bool found){
         Collider[] colliders = Physics.OverlapSphere(
@@ -184,30 +185,7 @@ public class EnemyEntity : Entity
     private void UpdateManager(enemyState enemyState){
         // send new state to manager
     }
-    protected virtual Vector3 Move(){
-        Vector3 distanceToTarget = target.transform.position - gameObject.transform.position;
-        Vector3 targetDirection = Vector3.forward;
 
-        if (distanceToTarget.magnitude < NearTargetRange){
-            targetDirection = Vector3.back;
-        } else if (distanceToTarget.magnitude > FarTargetRange){
-            targetDirection = Vector3.forward;
-        } else {
-            targetDirection = Vector3.zero;
-        }
-        targetDirection = rb.transform.rotation * targetDirection;
-
-        float acceleration = BaseMovementAcceleration;
-        if (rb.linearVelocity.magnitude > MaxMoveSpeed){
-            acceleration *= rb.linearVelocity.magnitude / MaxMoveSpeed;
-        }
-        Vector3 direction = targetDirection * MaxMoveSpeed - rb.linearVelocity;
-        
-        float directionMag = targetDirection.magnitude;
-        targetDirection = Vector3.ProjectOnPlane(direction, groundNormal).normalized * acceleration;
-
-        return targetDirection -= targetDirection * frictionMultiplier;
-    }
     protected virtual float PIDUpdate(float timeStep, float currentValue, float targetValue, ref float lastPosition, ref float lastError, ref float storedIntegral){
         float error = targetValue - currentValue;
         float force = proportionalGain * error;

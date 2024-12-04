@@ -53,6 +53,10 @@ public static class SaveSystem
             return new List<SaveSlot>();
         }
         string path = Path.Combine(Application.persistentDataPath, "Saves");
+        if (!Directory.Exists(path)){
+            Directory.CreateDirectory(path);
+            return new List<SaveSlot>();
+        }
         string[] directories = Directory.GetDirectories(path);
         List<SaveSlot> slotList = new List<SaveSlot>();
         foreach (string directory in directories){
