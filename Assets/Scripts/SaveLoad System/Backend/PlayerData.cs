@@ -42,9 +42,13 @@ public class PlayerData
         timeOnSave = 0;
         totalKills = 0;
     }
+    private void Start() {
+        playerManager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
+    }
     public void UpdateData(){
         currentScene = SceneManager.GetActiveScene().name;
         health = player.GetComponent<PlayerEntity>().Health;
+        maxHealth = player.GetComponent<PlayerEntity>().MaxHealth;
         position = player.transform.position;
         velocity = player.GetComponent<Rigidbody>().linearVelocity;
         bodyRotation = player.transform.rotation;

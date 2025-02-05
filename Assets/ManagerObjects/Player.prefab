@@ -63,8 +63,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6328884882081824275}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -200,6 +200,9 @@ MonoBehaviour:
   groundNormal: {x: 0, y: 1, z: 0}
   gravity: -9.81
   jumpForce: 3.5
+  airJumpsTotal: 1
+  airJumpsLeft: 1
+  movement: {x: 0, y: 0, z: 0}
   movementState: 0
   lastMovementState: 0
   friction: 2
@@ -216,6 +219,8 @@ MonoBehaviour:
   wasSliding: 0
   startedSliding: 0
   slideCapSet: 0
+  wallNormal: {x: 0, y: 0, z: 0}
+  stuckToWall: 0
   maxCrouchSpeed: 4.5
   maxSlidingSpeed: 15
   maxWalkSpeed: 7.5
@@ -255,7 +260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34c1f2f1e4be90744870d37a920638bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
+  maxHealth: 0
   health: 100
   defenseMultiplier: 0
   healingMultiplier: 0

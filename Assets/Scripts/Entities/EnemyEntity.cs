@@ -6,7 +6,7 @@ public class EnemyEntity : Entity
     public GameObject target;
     public Vector3 searchingTarget;
     protected bool searchTargetSet = false;
-    public enemyState state;
+    public EnemyManager.MemberState state;
     protected Rigidbody rb;
     public virtual float BaseMovementAcceleration => 8f;
     public virtual float MaxMoveSpeed => 5f;
@@ -24,11 +24,6 @@ public class EnemyEntity : Entity
     protected Vector3 groundNormal = Vector3.up;
     protected GameObject weapon;
     [SerializeField] protected Vector3 velocity;
-    public enum enemyState{
-        None,
-        Searching,
-        Combat
-    }
     
     [SerializeField] protected float proportionalGain = 1;
     [SerializeField] protected float derivativeGain = 0.1f;
@@ -69,15 +64,16 @@ public class EnemyEntity : Entity
         */
         velocity = rb.linearVelocity;
         Debug.DrawRay(rb.transform.position, rb.transform.rotation * Vector3.forward, Color.yellow);
-        if (state != enemyState.None){
+        if (state != EnemyManager.MemberState.None){
             if (target != null){
                 RotateToTarget(target.transform);
             }
-            if (state == enemyState.Combat){
+            if (state == EnemyManager.MemberState.Combat){
                 Vector3 movementTarget = target.transform.position - (target.transform.position - rb.transform.position).normalized * midRange;
                 ApplyMovement(movementTarget);
+                Combat();
                 // move towards and fire
-            } else if (state == enemyState.Searching){
+            } else if (state == EnemyManager.MemberState.Searching){
                 if ((searchingTarget - rb.transform.position).magnitude < 1 || !searchTargetSet){
                     SelectTarget();
                     ResetInitialisation();
@@ -89,6 +85,9 @@ public class EnemyEntity : Entity
         }
 
         lastPosition = rb.transform.position;
+    }
+    protected virtual void Combat(){
+        
     }
     protected virtual void ApplyMovement(Vector3 target){
         float movementX = PIDUpdate(Time.fixedDeltaTime, rb.transform.position.x, target.x, ref lastPosition.x, ref lastError.x, ref storedIntegral.x);
@@ -122,8 +121,8 @@ public class EnemyEntity : Entity
                 layerMask: playerLayer
             )){
                 Debug.DrawRay(rb.transform.position, rayDirection, Color.green);
-                state = enemyState.Combat;
-                UpdateManager(enemyState.Combat);
+                state = EnemyManager.MemberState.Combat;
+                UpdateManager(EnemyManager.MemberState.Combat);
                 target = hitInfo.collider.gameObject;
                 break;
             }
@@ -182,7 +181,7 @@ public class EnemyEntity : Entity
         }
         return point;
     }
-    private void UpdateManager(enemyState enemyState){
+    private void UpdateManager(EnemyManager.MemberState state){
         // send new state to manager
     }
 
@@ -203,20 +202,19 @@ public class EnemyEntity : Entity
         } else{
             initialised = true;
         }
-        derivative = derivativeGain * derivative;
+        derivative *= derivativeGain;
         storedIntegral = Mathf.Clamp(storedIntegral + error * timeStep, -maxStoredIntegral, maxStoredIntegral);
         float integral = integralGain * storedIntegral;
 
         lastError = error;
         return force + integral + derivative;
-        return Mathf.Clamp(force + derivative + integral, -MaxMoveSpeed, MaxMoveSpeed);
     }
     public void ResetInitialisation() => initialised = false;
     protected virtual void RotateToTarget(Transform target){
         Vector3 targetDirection = target.transform.position - rb.transform.position;
         targetDirection.y = 0;
         Quaternion dirInQuaternion = Quaternion.Euler(targetDirection.normalized);
-        rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.deltaTime);
+        rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime);
     }
     private void OnCollisionEnter(Collision other) {
         if (other.contacts.Length > 0){

@@ -22,6 +22,7 @@ public class PlayerGunInteraction : MonoBehaviour
     */
     private void Start()
     {
+        manager = GameObject.Find("Game Manager");
         playerInputs = manager.GetComponent<PlayerManager>().inputs;
         playerInputs.Player.Fire.performed += Fire;
         playerInputs.Player.SwapWeapon.performed += SwapWeapon;

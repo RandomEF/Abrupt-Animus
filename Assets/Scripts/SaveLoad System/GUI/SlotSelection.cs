@@ -8,6 +8,10 @@ public class SlotSelection : MonoBehaviour
 {
     public GameObject selected;
     public PlayerManager manager;
+    
+    private void Start() {
+        manager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
+    }
 
     public void LoadSelected(){
         if (selected == null){

@@ -1,12 +1,9 @@
-using System;
-using Unity.VisualScripting;
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public GameObject manager;
+    public PlayerManager manager;
     private PlayerInputs playerInputs; // Use if using the C# Class
     // private PlayerInput playerInput; // Use if using the Unity Interface
 
@@ -35,7 +32,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float friction = 0.9f;
     [SerializeField] private float drag = 0.01f;
     [SerializeField] private Vector3 velocity;
-    [SerializeField] private Vector3 groundVelocity;
+    [SerializeField] private Vector3 surfaceVelocity;
     [SerializeField] private Vector2 inputDirection;
     [SerializeField] private float preBoostVelocity;
     [SerializeField] private float baseMovementAcceleration = 10f;
@@ -52,6 +49,11 @@ public class PlayerMovement : MonoBehaviour
     [Header("Wallrunning")]
     [SerializeField] private Vector3 wallNormal;
     [SerializeField] private bool stuckToWall;
+    [SerializeField] private float wallSeparationAngle = 30f;
+    [SerializeField] private float wallFallSpeed = 2f;
+    [SerializeField] private float separationBoost = 2f;
+    [SerializeField] private float gravityMultiplier = 0.1f;
+
 
     [Header("Speed Caps")]
     [SerializeField] private float maxCrouchSpeed = 4.5f;
@@ -59,6 +61,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxWalkSpeed = 7.5f;
     [SerializeField] private float maxSprintSpeed = 15f;
     [SerializeField] private float maxBoostSpeed;
+    [SerializeField] private float maxWallrunningSpeed = 30f;
 
     [Header("Objects")]
     [SerializeField] private GameObject body;
@@ -77,13 +80,14 @@ public class PlayerMovement : MonoBehaviour
         wallrunning,
     }
     private void Start() {
+        manager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
         playerLayer = LayerMask.GetMask("Standable");
 
         player = body.GetComponent<Rigidbody>();
         playerCollider = body.GetComponent<CapsuleCollider>();
         SetPlayerDimensions(standingHeight, playerRadius);
 
-        playerInputs = manager.GetComponent<PlayerManager>().inputs;
+        playerInputs = manager.inputs;
 
         playerInputs.Player.Jump.performed += Jump;
         playerInputs.Player.Boost.performed += Boost;
@@ -95,7 +99,11 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Update() {
         velocity = player.linearVelocity;
-        groundVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
+        if (movementState == PlayerMovementState.wallrunning){
+            surfaceVelocity = Vector3.ProjectOnPlane(velocity, wallNormal);
+        } else{
+            surfaceVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
+        }
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
         bool crouching = CrouchControlState();
 
@@ -109,40 +117,40 @@ public class PlayerMovement : MonoBehaviour
             Wallrun();
         } else {
             Crouch();
-            Gravity();
             Movement();
         }
-        if (inputDirection.magnitude == 0 && groundVelocity.magnitude < 0.1f){
+        if (inputDirection.magnitude == 0 && surfaceVelocity.magnitude < 0.1f){
             velocity.x = 0;
             velocity.z = 0;
         }
         lastMovementState = movementState;
     }
     private void FixedUpdate() {
+        Gravity();
         player.AddForce(movement, ForceMode.VelocityChange);
         movement = Vector3.zero;
     }
     private void SetMovementState(bool isCrouched){
         if (stuckToWall){
             movementState = PlayerMovementState.wallrunning;
-        } else if (groundVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding){
+        } else if (surfaceVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding){
             movementState = PlayerMovementState.crouching;
             wasSliding = false;
-        } else if (groundVelocity.magnitude > maxWalkSpeed && isCrouched){
+        } else if (surfaceVelocity.magnitude > maxWalkSpeed && isCrouched){
             movementState = PlayerMovementState.sliding;
             wasSliding = false;
-        } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
+        } else if ((surfaceVelocity.magnitude < preBoostVelocity - 1 && surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.walking;
             wasSliding = false;
-        } else if ((groundVelocity.magnitude < preBoostVelocity - 1 && groundVelocity.magnitude > minSpeed && groundVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (groundVelocity.magnitude > minSpeed && groundVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
+        } else if ((surfaceVelocity.magnitude < preBoostVelocity - 1 && surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting)){
             movementState = PlayerMovementState.sprinting;
             if (!wasSliding){
                 wasSliding = true;
                 startedSliding = Time.time;
-                maxSlidingSpeed = groundVelocity.magnitude + 10f;
+                maxSlidingSpeed = surfaceVelocity.magnitude + 10f;
             }
             if (slideCapSet){
-                maxSlidingSpeed = groundVelocity.magnitude;
+                maxSlidingSpeed = surfaceVelocity.magnitude;
             }
         } else if (inputDirection.magnitude == 0){
             movementState = PlayerMovementState.idle;
@@ -186,6 +194,8 @@ public class PlayerMovement : MonoBehaviour
         if (!isGrounded){
             movement += (Physics.gravity / -9.81f * gravity) * Time.fixedDeltaTime;
             //player.AddForce((Physics.gravity / -9.81f * gravity) * Time.deltaTime, ForceMode.VelocityChange);
+        } else if (stuckToWall){
+            movement += (Physics.gravity / -9.81f * gravity * gravityMultiplier) * Time.fixedDeltaTime;
         }
     }
     private float FrictionMultiplier(){
@@ -196,9 +206,9 @@ public class PlayerMovement : MonoBehaviour
         } else if (movementState == PlayerMovementState.sliding){
             return 1 - friction;
         } else if (inputDirection.magnitude == 0) {
-            return 1-friction;//SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
+            return 1-friction;//SpeedFunction(Mathf.Clamp(surfaceVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
         } else {
-            return SpeedFunction(Mathf.Clamp(groundVelocity.magnitude, 0, 1f), 1, 1) - 1;
+            return SpeedFunction(Mathf.Clamp(surfaceVelocity.magnitude, 0, 1f), 1, 1) - 1;
         }
     }
     private float MaxSpeed(){
@@ -216,7 +226,7 @@ public class PlayerMovement : MonoBehaviour
             case PlayerMovementState.idle:
                 return maxWalkSpeed;
             default:
-                return groundVelocity.magnitude;
+                return surfaceVelocity.magnitude;
         }
     }
     private float Pow4(float num){
@@ -227,13 +237,13 @@ public class PlayerMovement : MonoBehaviour
     }
     private float CalculateAccelerationMultiplier(Vector2? speed = null){
         if (speed == null){
-            speed = groundVelocity;
+            speed = surfaceVelocity;
         }
         float clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, MaxSpeed()).magnitude;
         float acceleration;
         switch (movementState){
             case PlayerMovementState.walking:
-                acceleration = 10f;//SpeedFunction(clampedMagnitude, 0.75f, 10);
+                acceleration = SpeedFunction(clampedMagnitude, 0.75f, 10);
                 break;
             case PlayerMovementState.sprinting:
                 acceleration = SpeedFunction(clampedMagnitude, 1, 15f);
@@ -258,6 +268,9 @@ public class PlayerMovement : MonoBehaviour
                     slideCapSet = true;
                 }
                 break;
+            case PlayerMovementState.wallrunning:
+                acceleration = SpeedFunction(clampedMagnitude, 1.5f, 20f);
+                break;
             default:
                 acceleration = 0f;
                 break;
@@ -268,15 +281,15 @@ public class PlayerMovement : MonoBehaviour
         float maxSpeed = MaxSpeed();
         float acceleration = CalculateAccelerationMultiplier();
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
-        float alignment = Vector3.Dot(groundVelocity.normalized, target.normalized);
+        //float alignment = Vector3.Dot(surfaceVelocity.normalized, target.normalized);
 
         //* Above checked for jittering cause
-        if (groundVelocity.magnitude > maxSpeed) {
-            acceleration *= groundVelocity.magnitude / maxSpeed;
+        if (surfaceVelocity.magnitude > maxSpeed) {
+            acceleration *= surfaceVelocity.magnitude / maxSpeed;
         }
-        Vector3 direction = target * maxSpeed - groundVelocity;
+        Vector3 direction = target * maxSpeed - surfaceVelocity;
         float directionMag = direction.magnitude;
-        direction = Vector3.ProjectOnPlane(direction, groundNormal);//.normalized * directionMag;
+        direction = Vector3.ProjectOnPlane(direction, groundNormal).normalized * directionMag;
         /*
         if (direction.magnitude < 0.5f) // If moving very slowly
         {
@@ -291,51 +304,79 @@ public class PlayerMovement : MonoBehaviour
         direction -= direction * FrictionMultiplier();
         /*
         Vector2 directionGround = new Vector2(direction.x, direction.z);
-        if (directionGround.magnitude * Time.deltaTime < 0 && -directionGround.magnitude * Time.deltaTime > groundVelocity.magnitude){
+        if (directionGround.magnitude * Time.deltaTime < 0 && -directionGround.magnitude * Time.deltaTime > surfaceVelocity.magnitude){
             Debug.Log("did this");
-            direction.x = -groundVelocity.x/Time.deltaTime;
-            direction.z = -groundVelocity.y/Time.deltaTime;
+            direction.x = -surfaceVelocity.x/Time.deltaTime;
+            direction.z = -surfaceVelocity.y/Time.deltaTime;
         }*/
 
-        movement += direction * Time.fixedDeltaTime;
+        movement += direction * Time.deltaTime;
         //player.AddForce(direction * Time.deltaTime, ForceMode.VelocityChange);
     }
     private void Wallrun(){
-        ;
+        Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
+        if (Mathf.Abs(Vector3.Angle(wallNormal, target)) < wallSeparationAngle){
+            stuckToWall = false;
+            movement += wallNormal * separationBoost * Time.deltaTime;
+            movementState = PlayerMovementState.walking;
+            return;
+        } else if (player.linearVelocity.magnitude < wallFallSpeed){
+            stuckToWall = false;
+            movement += wallNormal * separationBoost * Time.deltaTime * 0.1f;
+            movementState = PlayerMovementState.walking;
+            return;
+        }
+
+        //TODO add movement on wall
+        target = Vector3.ProjectOnPlane(target, wallNormal);
+        Vector3 wallVelocity = Vector3.ProjectOnPlane(player.linearVelocity, wallNormal);
+
+        //todo rotate camera away from wall
     }
     private void Jump(InputAction.CallbackContext inputType){
         /*
-        Vector3 direction = inputDirection == Vector2.zero ? groundVelocity.normalized : player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
+        Vector3 direction = inputDirection == Vector2.zero ? surfaceVelocity.normalized : player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y);
         direction.y += 1;
         
         direction *= jumpForce;
         if (movementState == PlayerMovementState.wallrunning){
             direction += -wallNormal * jumpForce * 2;
         }
-        float alignment = Vector3.Dot(groundVelocity.normalized, inputDirection);
+        float alignment = Vector3.Dot(surfaceVelocity.normalized, inputDirection);
         if (alignment < 0){
-            direction += -groundVelocity;
+            direction += -surfaceVelocity;
         }*/
         Vector3 direction = Vector3.up * jumpForce;
-        if (velocity.y < 0){
+        if (movementState == PlayerMovementState.wallrunning){
+            direction += wallNormal * jumpForce; // Make sure to push the player away from the wall
+            direction = direction.normalized * jumpForce;
+            if (velocity.y < 0){
+                direction.y -= velocity.y;
+            }
+            movement += direction;
+            return;
+        }
+
+        if (velocity.y < 0){ // If the player is moving downwards, provide enough force to move them back upwards
             direction.y -= velocity.y;
         }
         if (isGrounded){
-            Debug.Log("yump");
+            Debug.Log("Jumped");
             movement += direction;
             //player.AddForce(direction, ForceMode.VelocityChange);
         } else if (airJumpsLeft > 0){
             movement += direction;
             //player.AddForce(direction, ForceMode.VelocityChange);
             airJumpsLeft--;
+            Debug.Log($"Air jumped, jumps left: {airJumpsLeft}");
         }
     }
     private void Boost(InputAction.CallbackContext inputType){
         movementState = PlayerMovementState.boosting;
-        preBoostVelocity = groundVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : groundVelocity.magnitude;
+        preBoostVelocity = surfaceVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : surfaceVelocity.magnitude;
         inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
 
-        Vector3 boostMovement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * groundVelocity.magnitude * (boostMultiplier - 1);
+        Vector3 boostMovement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * surfaceVelocity.magnitude * (boostMultiplier - 1);
         maxBoostSpeed = velocity.magnitude + boostMovement.magnitude;
         movement += boostMovement;
         //player.AddForce(boostMovement, ForceMode.VelocityChange);
@@ -345,17 +386,18 @@ public class PlayerMovement : MonoBehaviour
             foreach (ContactPoint contact in collision.contacts) {
                 float slopeAngle = Vector3.Angle(contact.normal, Vector3.up);
                 
-                if (slopeAngle > maxSlope){
-                    airJumpsLeft = airJumpsTotal;
+                airJumpsLeft = airJumpsTotal;
+                if (slopeAngle <= maxSlope){
+                    isGrounded = true;
+                    groundNormal = contact.normal;
+                    break;
+                } else{
+                    stuckToWall = true;
                     wallNormal = contact.normal;
                     Wallrun();
-                } else{
-                    isGrounded = true;
-                    airJumpsLeft = airJumpsTotal;
-                    groundNormal = contact.normal;
                 }
             }
-        } else if (collision.contacts.Length == 0) {
+        } else {
             isGrounded = false;
             groundNormal = Vector3.up;
         }

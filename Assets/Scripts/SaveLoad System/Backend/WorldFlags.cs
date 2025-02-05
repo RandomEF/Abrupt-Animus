@@ -1,5 +1,5 @@
 [System.Serializable]
 public class WorldFlags
 {
-    bool seenTutorial = false;
+    int seenTutorial = 0;
 }

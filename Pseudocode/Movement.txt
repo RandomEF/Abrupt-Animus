@@ -74,3 +74,35 @@ procedure Boost()
     boostMovement = player.rotation * inputDirection * groundVelocity.magnitude * (boostMultiplier - 1)
     movement = movement + boostMovement
 endprocedure
+
+procedure Look()
+    lookMotion = lookAction.ReadValue<Vector2> * mouseSensitivity / 20
+    playerBody.rotation = playerBody.rotation * Quaternion.Euler(Vector3.up * lookMotion.x)
+
+    verticalRotation = verticalRotation - lookMotion.movementY
+    verticalRotation = Mathf.Clamp(verticalRotation, -90, 90)
+    transform.localRotation = Quaternion.Euler(verticalRotation, 0, 0)
+endprocedure
+
+procedure CollisionDetected(collision)
+    if collision.contacts.Length > 0 then
+        for i = 0 to collision.contacts.Length - 1
+            slopeAngle = Vector3.Angle(contact.normal, Vector3.up)
+            airJumpsLeft = airJumpsTotal
+            if slopeAngle > maxSlope then
+                wallNormal = contact.normal
+                Wallrun()
+            else
+                isGrounded = true
+                groundNormal = contact.normal
+            endif
+        next i
+    else
+        isGrounded = false
+        groundNormal = Vector3.up
+    endif
+endprocedure
+
+function GroundCheck()
+    return Physics.CheckSphere(new Vector3(player.transform.position.x, player.transform.position.y - groundDistance + (0.99f * player.transform.localScale.x * playerCollider.radius) - (player.transform.localScale.y * playerCollider.height)/2, player.transform.position.z), player.transform.localScale.x * playerCollider.radius * 0.99f, playerLayer)
+endfunction

@@ -1,23 +1,120 @@
-procedure Update()
+procedure FixedUpdate()
+    velocity = rigidbody.linearVelocity
+    if state != enemyState.None then
+        if target != null then
+            RotateToTarget(target.transform)
+        endif
+        if state == enemyState.Combat then
+            movementTarget = target.transform.position - (target.transform.position - rigidbody.transform.position).normalized * midRange
+            ApplyMovement(movementState)
+        else if state == enemyState.Searching then
+            if (searchingTarget - rigidbody.transform.position).magnitude < 1 || NOT searchTargetSet then
+                SelectTarget()
+                searchTargetSet = true
+            ApplyMovement(searchingTarget)
+            Searching()
+        endif
+    endif
+    lastPosition = rigidbody.transform.position
 endprocedure
 
-procedure ApplyMovement()
+procedure ApplyMovement(target)
+    movementX = PIDUpdate(Time.fixedDeltaTime, rigidbody.transform.position.x, target.x, lastPosition.x:byRef, lastError.x:byRef, storedIntegral.x:byRef)
+    movementY = PIDUpdate(Time.fixedDeltaTime, rigidbody.transform.position.y, target.y, lastPosition.y:byRef, lastError.y:byRef, storedIntegral.y:byRef)
+    movementZ = PIDUpdate(Time.fixedDeltaTime, rigidbody.transform.position.z, target.z, lastPosition.z:byRef, lastError.z:byRef, storedIntegral.z:byRef)
+    movementTotal = new Vector3(movementX, movementY, movementZ)
+    if movementTotal.magnitude > maxMoveSpeed then
+        movementTotal = movementTotal * (maxMoveSpeed/movementTotal.magnitude)
+    endif
+    rigidbody.AddForce(movementTotal)
 endprocedure
 
 procedure Searching()
+    for i = 0 to rayCount - 1
+        hitInfo = new hitInfo()
+        rayDirection = Quaternion.AngleAxis(-45f + rayAngle * i, Vector3.up) * Vector3.forward
+        rayDirection = rigidbody.transform.position * rayDirection
+        if Physics.Raycast(rigidbody.transform.position, rayDirection, hitInfo:byRef, DetectionRange, playerLayer) then
+            state = enemyState.Combat
+            UpdateManager(enemyState.Combat)
+            target = hitInfo.collider.gameObject
+            break 
+        endif
+    next i
 endprocedure
 
 procedure SelectTarget()
+    found = false
+    point = GetClosestPoint(found:byRef)
+    if NOT found then
+        searchingTarget.y = rigidbody.transform.position.y - DetectionRange
+        return
+    endif
+    entityToPoint = rigidbody.transform.position - point
+    if entityToPoint.magnitude > DetectionRange then
+        searchingTarget = point - entityToPoint.normalized * Random.Random(0, DetectionRange)
+        return
+    endif
+
+    accessible = false
+    while NOT accessible
+        searchingTarget.x = Random.Range(-DetectionRange, DetectionRange)
+        searchingTarget.y = Random.Range(-DetectionRange, DetectionRange)
+        searchingTarget.z = Random.Range(-DetectionRange, DetectionRange)
+        searchingTarget = searchingTarget + rigidbody.transform.position
+        hitInfo = new RaycastHit()
+        if Physics.Raycast(rigidbody.transform.position, (searchingTarget - rigidbody.transform.position).normalized, hitInfo:byRef, DetectionRange) then
+            if (hitInfo.point - rigidbody.transform.position).magnitude < 1 then
+                continue
+            else
+                searchingTarget = hitInfo.point
+            endif
+        endif
+        accessible = true
+    endwhile
 endprocedure
 
-function GetClosestPoint()
+function GetClosestPoint(found:byRef)
+    array colliders = Physics.OverlapSphere(rigidbody.transform.position, DetectionRange)
+    found = false
+    point = Vector3.zero
+    distSqrd = Mathf.Infinity
+    for i = 0 to colliders.Length - 1
+        found = true
+        if (rigidbody.transform.position - colliders[i].transform.position).sqrMagnitude < distSqrd then
+        distSqrd = (rb.transform.position - colliders[i].transform.position).sqrMagnitude
+        point = colliders[i].ClosestPoint(rigidbody.transform.position)
+    next i
+    return point
 endfunction
 
 procedure UpdateManager()
+
 endprocedure
 
-function PIDUpdate()
+function PIDUpdate(timeStep, currentValue, targetValue, lastPosition:byRef, lastError: byRef, storedIntegral:byRef)
+    error = targetValue - currentValue
+    force = proportionalGain * error
+    derivative = 0
+    if derivativeType == DerivativeType.Error then
+        if error - lastError != 0 then
+            derivative = (error - lastError) / timeStep
+        endif
+    else
+        if currentValue - lastPosition != 0 then
+            derivative = (currentValue - lastPosition) / timeStep
+        endif
+    endif
+    derivative = derivativeGain * derivative
+    storedIntegral = Mathf.Clamp(storedIntegral + error * timeStep, -maxStoredIntegral, maxStoredIntegral)
+    integral = integralGain * storedIntegral
+
+    lastError = error
+    return force + integral + derivative
 endfunction
 
-procedure RotateToTarget()
+procedure RotateToTarget(target)
+    targetDirection = target.transform.position - rigidbody.transform.position
+    dirInQuaternion = Quaternion.Euler(targetDirection.normalized)
+    rigidbody.transform.rotation = Quaternion.Slerp(rigidbody.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime)
 endprocedure

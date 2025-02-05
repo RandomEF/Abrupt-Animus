@@ -25,11 +25,14 @@ public class Drone : EnemyEntity
         Debug.DrawRay(rb.transform.position, new Vector3(0f, movementY, 0f).normalized, Color.green);
         Debug.DrawRay(rb.transform.position, new Vector3(0f, 0f, movementZ).normalized, Color.blue);
         Debug.DrawRay(rb.transform.position, movementTotal.normalized, Color.black);
+        if (movementTotal.magnitude > MaxMoveSpeed){
+            movementTotal = movementTotal * (MaxMoveSpeed/movementTotal.magnitude);
+        }
         rb.AddForce(movementTotal);
     }
     protected override void RotateToTarget(Transform target){
         Vector3 targetDirection = (target.transform.position - rb.transform.position).normalized;
         Quaternion dirInQuaternion = Quaternion.LookRotation(targetDirection);
-        rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.deltaTime);
+        rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime);
     }
 }
