@@ -4,6 +4,8 @@
 Changes:
 - Began work on wallrunning
 - Added builds to commits
+- Added states to enemy
+- Added GetVarValue and SetVarValue for the save and dialogue system to work together using reflection
 
 ## Version 0.4.2
 Changes:
