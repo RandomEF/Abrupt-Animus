@@ -7,6 +7,8 @@ For this NEA, I shall be creating a game. All files used in the game are availab
 
 This is a movement-based FPS game, where the aim of the game is to manage your momentum, while narrowly avoiding death. Gain merit within the army, and upgrade yourself to further appease the hero.
 
+[Patch Notes](<PatchNotes.md>)
+
 ## **Features / Already built**
 
 - WASD movement
@@ -20,16 +22,16 @@ This is a movement-based FPS game, where the aim of the game is to manage your m
 - Entity damage handling
 - Database management for the Dialogue and Actor databases
 - Single line parser for dialogue system
+- Sliding
+- Shooting
 
 ## **To do**
 
 - Wallrunning
-- Sliding
 - Grappling
 - Animations
 - Character models
 - Enemies
-- Shooting
 - Models
 - Dialogue System
 - Everything else
