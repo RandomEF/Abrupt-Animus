@@ -20,6 +20,6 @@ public class SlotSelection : MonoBehaviour
         SaveData data = SaveSystem.LoadSave(selected.GetComponent<SelectSlot>().dataPath);
         int slot = Int32.Parse(selected.transform.parent.GetChild(2).gameObject.GetComponent<TMP_Text>().text);
         manager.SetSlotandData(slot, data);
-        SceneManager.LoadScene(selected.transform.parent.GetChild(4).gameObject.GetComponent<TMP_Text>().text);
+        manager.LoadSlot(selected.transform.parent.GetChild(4).gameObject.GetComponent<TMP_Text>().text);
     }
 }

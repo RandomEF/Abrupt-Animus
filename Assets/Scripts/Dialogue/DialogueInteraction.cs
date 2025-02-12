@@ -8,7 +8,7 @@ using Unity.VisualScripting;
 
 public class DialogueInteraction : MonoBehaviour
 {
-    public GameObject gameManager;
+    public PlayerManager gameManager;
     private DialogueDatabaseManager ddm;
     public GameObject dialogueManager;
     private List<(int, string)> actorsInInteraction = new List<(int, string)>();
@@ -18,7 +18,8 @@ public class DialogueInteraction : MonoBehaviour
     private StreamReader fileReader;
     void Start()
     {
-        ddm = gameManager.GetComponent<DialogueDatabaseManager>();
+        gameManager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
+        ddm = gameManager.gameObject.GetComponent<DialogueDatabaseManager>();
         filepath = Path.Combine(Application.streamingAssetsPath, "Dialogue", dialogueFile.name + ".dlg");
         PreprocessSections();
         string line = RequestNext(true, "english", 1);
@@ -129,7 +130,7 @@ public class DialogueInteraction : MonoBehaviour
             string line = fileReader.ReadLine();
             lastLineNumber = lineNumber;
             if (line.Length < 3){
-                throw new System.Exception($"The line '{line}' is missing information.");
+                throw new System.Exception($"Tokenizer: The line '{line}' is missing information.");
             }
             StreamReader lineReader = new StreamReader(line);
             TreeNode lineTree = new TreeNode();
@@ -171,7 +172,7 @@ public class DialogueInteraction : MonoBehaviour
                     ReadAnimation(line, lineTree);
                 }
             } else {
-                throw new System.Exception($"The starting character '{token}' was not recognised.");
+                throw new System.Exception($"Tokenizer: The starting character '{token}' was not recognised.");
             }
         }
     }
@@ -180,14 +181,14 @@ public class DialogueInteraction : MonoBehaviour
         while (character == 32){
             character = line.Read();
         }
-        return character == -1 ? throw new System.Exception("Nothing left to read.") : (char)character;
+        return character == -1 ? throw new System.Exception("Tokenizer: Nothing left to read.") : (char)character;
     }
     private char PeekChar(StreamReader line){
         Int32 character = 32;
         while (character == 32){
             character = line.Peek();
         }
-        return character == -1 ? throw new System.Exception("Nothing left to peek.") : (char)character;
+        return character == -1 ? throw new System.Exception("Tokenizer: Nothing left to peek.") : (char)character;
     }
     private void ReadID(StreamReader line, TreeNode lineTree){
         char character = ReadChar(line);
@@ -200,7 +201,7 @@ public class DialogueInteraction : MonoBehaviour
         } else if (character == 'L'){
             idNode.AddType("line");
         } else{
-            throw new Exception($"Unable to decide if this is an actor or line reference: {character}");
+            throw new Exception($"Tokenizer: Unable to decide if this is an actor or line reference: {character}");
         }
         idNode.value.Add("id", id.ToString());
     }
@@ -234,7 +235,7 @@ public class DialogueInteraction : MonoBehaviour
         } else if (Char.IsLetter(character) || character == '_'){
             ReadVariable(line, ifNode);
         } else {
-            throw new Exception("Nothing valid to compare to.");
+            throw new Exception("Tokenizer: Nothing valid to compare to.");
         }
     }
     private void ReadVariable(StreamReader line, TreeNode lineTree){
@@ -243,7 +244,7 @@ public class DialogueInteraction : MonoBehaviour
         string variable = "";
         char character = PeekChar(line);
         if(Char.IsNumber(character)){
-            throw new Exception("Variable can't start with a number!");
+            throw new Exception("Tokenizer: Variable can't start with a number!");
         }
         while (!line.EndOfStream){
             character = PeekChar(line);
@@ -275,10 +276,10 @@ public class DialogueInteraction : MonoBehaviour
                 opNode.AddType("assign");
                 return op;
             } else {
-                throw new Exception($"Invalid operator '{op}'.");
+                throw new Exception($"Tokenizer: Invalid operator '{op}'.");
             }
         }
-        throw new Exception($"No valid operator found: '{op}'");
+        throw new Exception($"Tokenizer: No valid operator found: '{op}'");
     }
     private void ReadJump(StreamReader line, TreeNode lineTree){
         char character = ReadChar(line);
@@ -292,7 +293,7 @@ public class DialogueInteraction : MonoBehaviour
             sectionNode.AddType("jump");
             sectionNode.value.Add("section", section);
         } else {
-            throw new Exception("This is not a jump, what were you trying to signify?");
+            throw new Exception("Tokenizer: This is not a jump, what were you trying to signify?");
         }
     }
     private void ReadChoice(StreamReader line, TreeNode lineTree){
@@ -306,7 +307,7 @@ public class DialogueInteraction : MonoBehaviour
             } else if (character == '#'){
                 ReadID(line, lineTree);
             } else {
-                throw new Exception($"Unrecognised character '{character}' following choice line");
+                throw new Exception($"Tokenizer: Unrecognised character '{character}' following choice line");
             }
         } else {
             choiceNode.value.Add("end", "true");
@@ -362,7 +363,7 @@ public class DialogueInteraction : MonoBehaviour
                     string[] animID = {elements[1].value["num"]};
                     return (returnType, returnActor, returnLines);
                 } else {
-                    throw new Exception("Unable to progress after discovering actor in analysis.");
+                    throw new Exception("Analysis: Unable to progress after discovering actor in analysis.");
                 }
             } else if (elements[0].GetNodeType() == "choice"){
                 returnType = "choice";
@@ -373,28 +374,38 @@ public class DialogueInteraction : MonoBehaviour
                 JumpToSection(elements[0]);
                 return (returnType, null, null);
             } else if (elements[0].GetNodeType() == "if"){
-                int value;
-                if (elements[2].GetNodeType() == "var"){
-                    // Get value of variable
-                    // value == varValue
-                } else if (elements[2].GetNodeType() == "num"){
-                    value = Int32.Parse(elements[2].value["num"]);
-                }
-
+                returnType = "false";
+                int var1 = AnalyseIf(elements[2]);
                 if (elements[1].GetNodeType() == "assign"){
-                    
+                    gameManager.SetVarValue(elements[2].value["var"], var1);
                 } else if (elements[1].GetNodeType() == "comp"){
-                    int variableFirst;
-                    //bool passed = EvalComparison(variableFirst, elements[1].value["op"], value);
-                    // have goto if comp is true
+                    int var2 = AnalyseIf(elements[3]);
+                    bool passed = EvalComparison(var1, elements[1].value["op"], var2);
+                    if (passed){
+                        if (elements[4].GetNodeType() == "jump"){
+                            lineNumber = dialogueSections[elements[4].value["section"]];
+                            returnType = "true";
+                        } else {
+                            throw new Exception("Analysis: Expected a 'jump' node with a section.");
+                        }
+                    }
                 }
-                returnType = "true";
                 return (returnType, null, null);
             } else {
-                throw new Exception($"Unrecognised node type '{elements[0].GetNodeType()}' found in syntax analysis step.");
+                throw new Exception($"Analysis: Unrecognised node type '{elements[0].GetNodeType()}' found in syntax analysis step.");
             }
         }
         return (returnType, null, returnLines);
+    }
+    private int AnalyseIf(TreeNode element){
+        if (element.GetNodeType() == "var"){
+            // Get value of variable
+            return gameManager.GetVarValue(element.value["var"]);
+        } else if (element.GetNodeType() == "num"){
+            return Int32.Parse(element.value["num"]);
+        } else {
+            throw new Exception($"Analysis: 'if' came across node of type {element.GetNodeType()} instead of a var or num");
+        }
     }
     private string LineAnalysis(List<TreeNode> lines){
         string returnLine = "";
@@ -420,7 +431,7 @@ public class DialogueInteraction : MonoBehaviour
             case "!=":
                 return variable != compareTo;
             default:
-                throw new Exception($"{op} is not a valid comparison operator");
+                throw new Exception($"Analysis: {op} is not a valid comparison operator");
         }
     }
 }

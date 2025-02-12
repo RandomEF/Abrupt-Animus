@@ -330,6 +330,8 @@ public class PlayerMovement : MonoBehaviour
         //TODO add movement on wall
         target = Vector3.ProjectOnPlane(target, wallNormal);
         Vector3 wallVelocity = Vector3.ProjectOnPlane(player.linearVelocity, wallNormal);
+        
+        movement += wallVelocity * Time.deltaTime;
 
         //todo rotate camera away from wall
     }

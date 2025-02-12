@@ -8,6 +8,7 @@ public class Drone : EnemyEntity
     public override float NearTargetRange => 5f;
     public override float DetectionRange => 30f;
     protected override float frictionMultiplier => 0.5f;
+    public override int value => 15;
 
     public override void Start() {
         Health = MaxHealth;

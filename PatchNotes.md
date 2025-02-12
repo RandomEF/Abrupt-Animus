@@ -1,31 +1,40 @@
 # Patch Notes
 
+## Version 0.4.4
+Changes:
+- Added health bar
+- Added loading bar
+- Began level loader with player maintained
+- Worked on .dlg Analysis
+- Added code for score adding
+- Commented code
+
 ## Version 0.4.3
 Changes:
 - Began work on wallrunning
 - Added builds to commits
 - Added states to enemy
-- Added GetVarValue and SetVarValue for the save and dialogue system to work together using reflection
+- Added GetVarValue() and SetVarValue() for the save and dialogue system to work together using reflection
 
 ## Version 0.4.2
 Changes:
 - Added a crosshair
-- Changed player movement to all work in FixedUpdate instead of Update
+- Changed player movement to all work in FixedUpdate() instead of Update()
 - Fixed a bug with the Save System where the correct folders may not be created the first time
 - Added empty classes for Blades and Explosives
 
 ## Version 0.4.1
 Changes:
 - Changed enemy movement to use a PID controller instead
-- Changed SelectTarget to include a check that the entity can reach the target, does not work on planes since they do not intersect with rays
+- Changed SelectTarget() to include a check that the entity can reach the target, does not work on planes since they do not intersect with rays
 
 ## Version 0.4.0
 Changes:
 - Added Soldier
 - Added Drone
 - Added Tank
-- Added Searching to EnemyEntity
-- Added Move to EnemyEntity
+- Added Searching() to EnemyEntity
+- Added Move() to EnemyEntity
 - Added smooth interpolation to facing angle for enemies
 
 ## Version 0.3.6
@@ -49,8 +58,8 @@ Changes:
 - Added PlayerData
 - Added WorldFlags
 - Added SerializableStructs for the save system
-- Added Save
-- Added Load
+- Added Save()
+- Added Load()
 
 ## Version 0.3.3
 Changes:
@@ -128,7 +137,7 @@ Changes:
 
 ## Version 0.0.2
 Changes:
-- Found continuous detection (sighh)
+- Found continuous detection (_sigh_)
 - Scrapped Collide and Slide custom movement controller
 - Returned to Rigidbody movement controller
 - Added Speed Clamp

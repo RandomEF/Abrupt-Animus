@@ -120,13 +120,13 @@ public static class SaveSystem
 }
 
 public class SaveSlot {
-    public string dataPath;
+    public string dataPath; // Exists so that SaveData only has 1 instance open at anytime for memory
     public string number;
     public string sceneName = "Empty";
     public float time = 0;
-    public SaveSlot(string dataPath){
+    public SaveSlot(string dataPath){ 
         this.dataPath = dataPath;
-        number = Regex.Match(Path.GetFileName(dataPath), @"(?<=Slot)\d+").ToString();
+        number = Regex.Match(Path.GetFileName(dataPath), @"(?<=Slot)\d+").ToString(); // Gets the ending number from every slot
         SaveData data = SaveSystem.LoadSave(dataPath);
         sceneName = data.playerData.currentScene;
         time = data.playerData.timeOnSave;

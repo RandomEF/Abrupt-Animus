@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class IsGroundedTest : MonoBehaviour
@@ -7,7 +5,7 @@ public class IsGroundedTest : MonoBehaviour
     public Rigidbody player;
     public CapsuleCollider playerCollider;
     public GameObject playerObj;
-    private void OnDrawGizmos() {
+    private void OnDrawGizmos() { // Draws the overlap sphere used for depreciated ground check function
         float groundDistance = player.GetComponent<PlayerMovement>().groundDistance;
         float radius = player.transform.localScale.x * playerCollider.radius;
         float playerHeight = player.transform.localScale.y * playerCollider.height;
