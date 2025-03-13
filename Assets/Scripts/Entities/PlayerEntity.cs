@@ -1,6 +1,7 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
 public class PlayerEntity : Entity
@@ -8,6 +9,19 @@ public class PlayerEntity : Entity
     public Slider slider;
     public TMP_Text healthText;
     bool run = true;
+
+    [SerializeField] private AudioClip death;
+
+    void Awake()
+    {
+        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/PlayerDeath.wav").Completed += (asyncOp) => {
+            if (asyncOp.Status == AsyncOperationStatus.Succeeded){
+                death = asyncOp.Result;
+            } else {
+                Debug.LogError("Failed to load player death audio.");
+            }
+        };
+    }
 
     public override void Start() {
         Health = MaxHealth;
@@ -29,5 +43,11 @@ public class PlayerEntity : Entity
             slider.value = Health / MaxHealth;
             healthText.text = Health.ToString();
         }
+    }
+
+    public override void Kill()
+    {
+        MenuManager.Instance.ChangeMenu("Death");
+        AudioManager.Instance.PlaySFXClip(death, transform, 1f);
     }
 }

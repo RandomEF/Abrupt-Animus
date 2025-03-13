@@ -18,11 +18,10 @@ public class DialogueInteraction : MonoBehaviour
     private StreamReader fileReader;
     void Start()
     {
-        gameManager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
-        ddm = gameManager.gameObject.GetComponent<DialogueDatabaseManager>();
+        gameManager = PlayerManager.Instance;
+        ddm = DialogueDatabaseManager.Instance;
         filepath = Path.Combine(Application.streamingAssetsPath, "Dialogue", dialogueFile.name + ".dlg");
         PreprocessSections();
-        string line = RequestNext(true, "english", 1);
     }
     private void PreprocessSections(){
         StreamReader reader = new StreamReader(filepath);
@@ -108,11 +107,13 @@ public class DialogueInteraction : MonoBehaviour
                     convertedLines[i] = ConvertLine(lines[i]);
                 }
                 return (type, returnVals.Item2, convertedLines); // returnVals.Item2 will be blank as the actor is assumed to be the player, but this must be passed through to fulfill the return type conditions
-            } else if (type == "facing"){
+            } /*else if (type == "facing"){
 
-            } else if (type == "line"){
+            } */else if (type == "line"){
                 string actor = returnVals.Item2;
                 string line = ConvertLine(returnVals.Item3[0]);
+            } else {
+                throw new Exception($"Line Retrieval: '{type}' was not a recognised type.");
             }
         }
     }
@@ -168,9 +169,9 @@ public class DialogueInteraction : MonoBehaviour
                 token = ReadChar(line);
                 if (token ==  ':'){
                     ReadSeparator(line, lineTree);
-                } else if (token == '-'){
+                } /*else if (token == '-'){
                     ReadAnimation(line, lineTree);
-                }
+                }*/
             } else {
                 throw new System.Exception($"Tokenizer: The starting character '{token}' was not recognised.");
             }
@@ -321,7 +322,7 @@ public class DialogueInteraction : MonoBehaviour
             separatorNode.AddType("sep");
             lineTree.AddChild(separatorNode);
         }
-    }
+    }/*
     private void ReadAnimation(StreamReader line, TreeNode lineTree){
         char character = PeekChar(line);
         if (character == '-'){
@@ -331,7 +332,7 @@ public class DialogueInteraction : MonoBehaviour
             animNode.AddType("anim");
             animNode.value.Add("num", ReadNumber(line).ToString());
         }
-    }
+    }*/
     // Analysis
     private (string, string, string[]) Analyzer(TreeNode fileTree){
         string[] lines = new string[fileTree.GetChildren().Count];
@@ -347,22 +348,22 @@ public class DialogueInteraction : MonoBehaviour
                     string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     string[] animID = {elements[1].value["num"]};
                     return (returnType, returnActor, animID);
-                } else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "actor"){
+                }/* else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "actor"){
                     returnType = "facing";
                     string returnActor1 = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     string[] returnActor2 = {RequestNext(false, "actor", Int32.Parse(elements[2].value["id"]))};
                     return (returnType, returnActor1, returnActor2);
-                } else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "line"){
+                } */else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "line"){
                     returnType = "line";
                     returnLines[i] = LineAnalysis(elements.GetRange(2, elements.Count - 2));
                     string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     return (returnType, returnActor, returnLines);
-                } else if (elements[1].GetNodeType() == "anim"){
+                }/* else if (elements[1].GetNodeType() == "anim"){
                     returnType = "anim";
                     string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     string[] animID = {elements[1].value["num"]};
                     return (returnType, returnActor, returnLines);
-                } else {
+                } */else {
                     throw new Exception("Analysis: Unable to progress after discovering actor in analysis.");
                 }
             } else if (elements[0].GetNodeType() == "choice"){

@@ -1,0 +1,93 @@
+procedure PreprocessSections()
+    fileLines = dialogueFile.text.Split("\n")
+    for i=0 to fileLines.Length - 1
+        line = fileLines[i]
+        if line.StartsWith("[") AND line.EndsWith("]") then
+            dialogueSections.Add(line[1..^1], lineNumber)
+        endif
+    next i
+endprocedure
+
+function RequestNext(isDialogue, language, lineID)
+    connection = isDialogue ? ddm.OpenDialogueDb() : ddm.OpenActorDb()
+    lineRequest = connection.CreateCommand()
+    lineRequest.CommandText = $"SELECT {language} FROM {(isDialogue ? "Dialogue" : "Actor")} WHERE id={lineID}"
+    response = lineRequest.ExecuteReader()
+    response.Read()
+    line = response.GetString(0)
+    connection.Close()
+    return line
+endfunction
+
+function ConvertLine(line)
+    copy = line
+    firstItalics = true
+    firstBold = true
+    for i=0 to line.Length
+        if line[i] == '\\' then
+            i++
+        else if line[i] == '<' then
+            hexColour = line.Substring(++i, 7)
+            copy += "<color=" + hexColour + ">"
+            i += 6
+        else if (line[i] == '>') then
+            copy += "</color>"
+        else if (line[i] == '_') then
+            if firstItalics then
+                copy += "<i>"
+                firstItalics = false
+            else
+                copy += "</i>"
+                firstItalics = true
+            endif
+        else if line[i] == '*' then
+            if firstBold then
+                copy += "<b>"
+                firstBold = false
+            else
+                copy += "</b>"
+                firstBold = true
+            endif
+        else
+            copy += line[i]
+        endif
+    return copy
+endfunction
+
+procedure ReadNext(line, lineTree)
+    while NOT line.EndOfStream    
+        char token = ReadChar(line)
+        if token == '#' then
+            ReadID(line, lineTree)
+        else if token == '@' then
+            ReadIf(line, lineTree)
+        else if token == '-' then
+            ReadJump(line, lineTree)
+        else if token == '|' then
+            ReadChoice(line, lineTree)
+        else if token == ':' then
+            token = ReadChar(line)
+            if token ==  ':' then
+                ReadSeparator(line, lineTree)
+            endif
+        else
+            throw new System.Exception($"Tokenizer: The starting character '{token}' was not recognised.")
+        endif
+    endwhile
+endprocedure
+
+procedure ReadID(StreamReader line, TreeNode lineTree)
+    char character = ReadChar(line)
+    int id = ReadNumber(line)
+    TreeNode idNode = new TreeNode()
+    lineTree.AddChild(idNode)
+
+    if character == 'A' then
+        idNode.AddType("actor")
+    else if character == 'L' then
+        idNode.AddType("line")
+    else
+        throw new Exception($"Tokenizer: Unable to decide if this is an actor or line reference: {character}")
+    endif
+    idNode.value.Add("id", id.ToString())
+endprocedure

@@ -11,8 +11,6 @@ public class PlayerData
     public GameObject player;
     [JsonIgnore]
     public GameObject camera;
-    [JsonIgnore]
-    public PlayerManager playerManager;
 
     public string currentScene;
     public float health;
@@ -42,9 +40,7 @@ public class PlayerData
         timeOnSave = 0;
         totalKills = 0;
     }
-    private void Start() {
-        playerManager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
-    }
+
     public void UpdateData(){
         currentScene = SceneManager.GetActiveScene().name;
         health = player.GetComponent<PlayerEntity>().Health;
@@ -58,10 +54,10 @@ public class PlayerData
             weaponSlots.Add(new WeaponData(weaponScript.WeaponType, weaponScript.TotalAmmo, weaponScript.AmmoInClip));
         }
         activeWeaponSlot = player.GetComponent<PlayerGunInteraction>().activeWeaponSlot;
-        merit = playerManager.merit;
-        sanity = playerManager.sanity;
+        merit = PlayerManager.Instance.merit;
+        sanity = PlayerManager.Instance.sanity;
         timeOnSave += Time.realtimeSinceStartup;
-        totalKills = playerManager.totalKills;
+        totalKills = PlayerManager.Instance.totalKills;
     }
 }
 

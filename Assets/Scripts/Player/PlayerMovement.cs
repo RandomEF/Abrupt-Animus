@@ -80,7 +80,7 @@ public class PlayerMovement : MonoBehaviour
         wallrunning,
     }
     private void Start() {
-        manager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
+        manager = PlayerManager.Instance;
         playerLayer = LayerMask.GetMask("Standable");
 
         player = body.GetComponent<Rigidbody>();
@@ -355,7 +355,7 @@ public class PlayerMovement : MonoBehaviour
             if (velocity.y < 0){
                 direction.y -= velocity.y;
             }
-            movement += direction;
+            movement += direction; //you should probably comment the rest of your code, they kinda expect you to do that you know for marks
             return;
         }
 

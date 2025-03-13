@@ -1,0 +1,72 @@
+procedure Fire()
+    Instantiate(bullet, barrel.transform.position, barrel.rotation)
+endprocedure
+
+procedure BulletCheck()
+    RaycastHit hitInfo = new RaycastHit()
+    if Physics.Raycast(
+        origin: transform.position,
+        direction: transform.rotation * Vector2.up
+        hitInfo: hitInfo:byRef
+        ) then
+            hit = hitInfo.collider.gameObject
+            entityClass = hit.GetComponent<Entity>()
+            if entityClass != null then
+                hit.SendMessage("Damage", damageAmount)
+    endif
+endprocedure
+
+procedure SwapWeapon(inputType)
+    if slotsFilled > -1 then
+        direction = inputType.ReadValue<int>();
+        CurrentWeapon(activeWeaponSlot).SetActive(false)
+        CurrentWeapon(activeWeaponSlot).transform.position = weaponStow.position
+        activeWeaponSlot = Wrap(activeWeaponSlot + direction, weaponSlots)
+        if SelectFireWeapon() == null then
+            activeWeaponSlot = Wrap(activeWeaponSlot - direction, weaponSlots)
+        endif
+        CurrentWeapon(activeWeaponSlot).transform.position = weaponHold.position
+        CurrentWeapon(activeWeaponSlot).SetActive(true)
+    endif
+endprocedure
+
+procedure GetSwapSlot(wasUsed:byRef)
+    if slotsFilled < 4 then
+        wasUsed = false
+        return activeWeaponSlot + 1
+    endif
+    wasUsed = true
+    return activeWeaponSlot
+endprocedure
+
+procedure Interact(inputType)
+    RaycastHit hit = new RaycastHit()
+    if Physics.Raycast(
+        origin: playerHead.transform.position,
+        direction: playerHead.transform.rotation * Vector3.forward,
+        hitInfo: out hit
+    ) then
+        if hit.collider.gameObject.tag == "Weapon" then
+            AddWeapon(hit.collider.gameObject)
+        endif
+    endif
+endprocedure
+
+procedure AddWeapon(hit)
+    wasUsed = false;
+    activeWeaponSlot = GetSwapSlot(wasUsed)
+    if wasUsed then
+        CurrentWeapon(activeWeaponSlot).transform.SetParent(null, true)
+        CurrentWeapon(activeWeaponSlot).GetComponent<Rigidbody>().isKinematic = true
+        CurrentWeapon(activeWeaponSlot).GetComponent<Rigidbody>().detectCollisions = false
+        CurrentWeapon(activeWeaponSlot).transform.position = weaponHold.position
+        CurrentWeapon(activeWeaponSlot).transform.rotation = weaponHold.rotation
+    else
+        SetWeapon(Wrap(activeWeaponSlot + 1), hit) 
+    endif
+    CurrentWeapon(activeWeaponSlot).transform.SetParent(playerHead.transform, true)
+    CurrentWeapon(activeWeaponSlot).GetComponent<Rigidbody>().isKinematic = true
+    CurrentWeapon(activeWeaponSlot).GetComponent<Rigidbody>().detectCollisions = false
+    CurrentWeapon(activeWeaponSlot).transform.position = weaponHold.position
+    CurrentWeapon(activeWeaponSlot).transform.rotation = weaponHold.rotation
+endprocedure

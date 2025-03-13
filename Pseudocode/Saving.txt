@@ -1,0 +1,60 @@
+procedure Save(data, type, saveSlot)
+    type = new CultureInfo("en-US", false).TextInfo.ToTitleCase(type)
+    path = Path.Combine(Application.persistentDataPath, "Saves", "Slot" + saveSlot.ToString(), type)
+    fileMatch = "Slot" + saveSlot.ToString() + type + "*.dat"
+    array matches[] = Directory.GetFiles(path, fileMatch)
+    Array.Sort(matches)
+    fileNum = 1
+    if matches.Length > 0 then
+        lastFile = matches[^1]
+        lastFile = Path.GetFileNameWithoutExtension(lastFile).ToString()
+        fileNum = Int32.Parse(Regex.Match(lastFile, pattern).ToString()) + 1
+    endif
+    path = Path.Combine(path, "Slot" + saveSlot.ToString() + type + fileNum.ToString() + ".dat")
+
+    stream = new StreamWriter(path)
+    json = JsonConvert.SerializeObject(data)
+    stream.Write(json)
+    stream.Close()
+
+    lookup = GetLookup()
+    lookup[$"Slot{saveSlot}"] = path
+    keys = lookup.Keys
+    values = lookup.Values
+
+    lookupWriter = new StreamWriter(Path.Combine(Application.persistentDataPath, "SaveLookup.txt"))
+    for i=0 to key.Count - 1
+        lookupWriter.WriteLine(keys[i] + "," + values[i])
+    next i
+    lookupWriter.Close()
+endprocedure
+
+function LoadSave(path)
+    sr = new StreamReader(path)
+    data = JsonConvert.DeserializeObject<SaveData>(sr.ReadToEnd())
+    sr.Close()
+    
+    return data
+endfunction
+
+function ListAllSlots()
+    lookupPairs = GetLookup()
+    if lookupPairs == null then
+        return new List<SaveSlot>()
+    endif
+
+    if NOT Directory.Exists(path) then
+        Directory.CreateDirectory(path)
+        return new List<SaveSlot>()
+    endif
+
+    slotList = new List<SaveSlot>()
+    for i=0 to directories.Length - 1
+        directory = directories[i]
+        folder = directory.Substring(path.Length).TrimStart(Path.DirectorySeparatorChar)
+        savePath = lookupPairs[folder]
+        slot = new SaveSlot(savePath)
+        slotList.Add(slot)
+    next i
+    return slotList
+endfunction

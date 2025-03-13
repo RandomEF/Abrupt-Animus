@@ -8,7 +8,6 @@ public class EnemyEntity : Entity
     protected bool searchTargetSet = false;
     public EnemyManager.MemberState state;
     protected Rigidbody rb;
-    public virtual float BaseMovementAcceleration => 8f;
     public virtual float MaxMoveSpeed => 5f;
     public virtual float RotationSpeed => 10f;
     public virtual float FarTargetRange => 15f;
@@ -19,7 +18,6 @@ public class EnemyEntity : Entity
     protected float rayAngle;
     protected float maxSlope;
     // should probably also have detection angle as well for long distance
-    protected virtual float frictionMultiplier => 0.1f;
     protected LayerMask playerLayer;
     protected Vector3 groundNormal = Vector3.up;
     protected GameObject weapon;

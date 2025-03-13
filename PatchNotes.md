@@ -1,5 +1,14 @@
 # Patch Notes
 
+## Version 0.5.0
+Changes:
+- Added pause menu
+- Added SceneInfo database to handle start positions and moveability
+- Main Menu
+- Created MenuManager
+- Added Volume slider
+- Changed PlayerManager to a Singleton
+
 ## Version 0.4.4
 Changes:
 - Added health bar
@@ -8,6 +17,7 @@ Changes:
 - Worked on .dlg Analysis
 - Added code for score adding
 - Commented code
+- Drone model imported
 
 ## Version 0.4.3
 Changes:

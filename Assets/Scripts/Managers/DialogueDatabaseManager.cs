@@ -5,6 +5,14 @@ using System.IO;
 
 public class DialogueDatabaseManager : MonoBehaviour
 {
+    public static DialogueDatabaseManager Instance;
+    
+    void Awake()
+    {
+        if (Instance == null){
+            Instance = this;
+        }
+    }
     public IDbConnection OpenDialogueDb()
     {
         return OpenDb("Dialogue", new string[] {"english TEXT"});

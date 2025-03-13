@@ -15,7 +15,7 @@ public abstract class Entity : MonoBehaviour
 
     public virtual void Start(){
         Health = MaxHealth;
-        gameManager = GameObject.Find("Game Manager").GetComponent<PlayerManager>();
+        gameManager = PlayerManager.Instance;
     }
 
     public void Damage(float attack){

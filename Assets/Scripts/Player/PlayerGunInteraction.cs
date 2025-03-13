@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,7 +8,7 @@ public class PlayerGunInteraction : MonoBehaviour
     public Transform weaponHold;
     public Transform weaponStow;
     private Vector3 difference;
-    public GameObject manager;
+    public PlayerManager manager;
     public List<GameObject> weaponSlots = new List<GameObject>(); // Maybe reimplement as a list, so that scrolling works
     public int activeWeaponSlot = 0;
     private PlayerInputs playerInputs;
@@ -22,8 +20,8 @@ public class PlayerGunInteraction : MonoBehaviour
     */
     private void Start()
     {
-        manager = GameObject.Find("Game Manager");
-        playerInputs = manager.GetComponent<PlayerManager>().inputs;
+        manager = PlayerManager.Instance;
+        playerInputs = manager.inputs;
         playerInputs.Player.Fire.performed += Fire;
         playerInputs.Player.SwapWeapon.performed += SwapWeapon;
         playerInputs.Player.WeaponSlot1.performed += (i) => SwapSpecificSlot(1);
@@ -124,23 +122,27 @@ public class PlayerGunInteraction : MonoBehaviour
             }
             else if (hit.collider.gameObject.tag == "Weapon")
             {
-                Debug.Log("weapon interaction");
-                bool wasUsed;
-                activeWeaponSlot = GetSwapSlot(out wasUsed);
-                if (wasUsed){
-                    weaponSlots[activeWeaponSlot].transform.SetParent(null, true);
-                    weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = false;
-                    weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = true;
-                } else if (!weaponSlots.Contains(hit.collider.gameObject)){
-                    weaponSlots.Add(hit.collider.gameObject);
-                }
-                weaponSlots[activeWeaponSlot].transform.SetParent(playerHead.transform, true);
-                weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = true;
-                weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = false;
-                weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
-                weaponSlots[activeWeaponSlot].transform.rotation = weaponHold.rotation;
+                AddWeapon(hit.collider.gameObject);
             }
         }
+    }
+    public void AddWeapon(GameObject hit){
+        Debug.Log("weapon interaction");
+        bool wasUsed;
+        int temp = GetSwapSlot(out wasUsed);
+        if (wasUsed){
+            weaponSlots[activeWeaponSlot].transform.SetParent(null, true);
+            weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = false;
+            weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = true;
+        } else if (!weaponSlots.Contains(hit)){
+            weaponSlots.Add(hit);
+        }
+        activeWeaponSlot = temp;
+        weaponSlots[activeWeaponSlot].transform.SetParent(playerHead.transform, true);
+        weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().isKinematic = true;
+        weaponSlots[activeWeaponSlot].GetComponent<Rigidbody>().detectCollisions = false;
+        weaponSlots[activeWeaponSlot].transform.position = weaponHold.position;
+        weaponSlots[activeWeaponSlot].transform.rotation = weaponHold.rotation;
     }
     private void InteractHit(GameObject hit){
         

@@ -2,12 +2,10 @@ using UnityEngine;
 
 public class Drone : EnemyEntity
 {
-    public override float BaseMovementAcceleration => 12f;
     public override float MaxMoveSpeed => 10f;
     public override float FarTargetRange => 25f;
     public override float NearTargetRange => 5f;
     public override float DetectionRange => 30f;
-    protected override float frictionMultiplier => 0.5f;
     public override int value => 15;
 
     public override void Start() {
