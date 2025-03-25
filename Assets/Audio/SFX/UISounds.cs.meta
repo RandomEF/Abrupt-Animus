@@ -1,2 +1,13 @@
 fileFormatVersion: 2
 guid: 1f643f76050f17745b27aa4fbd1b29c3
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - uiHover: {fileID: 8300000, guid: 3989d55aa314d4445b44d1b853c27a0d, type: 3}
+  - uiSelect: {fileID: 8300000, guid: 1da9dcbf0509c47498763857223e8eda, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

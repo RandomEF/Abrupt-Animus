@@ -17,26 +17,36 @@ public class PauseGame : MonoBehaviour
         playerInputs.Menu.Exit.performed += Pause;
     }
 
-    private void Pause(InputAction.CallbackContext context){
-        if (manager.GetMoveability(SceneManager.GetActiveScene().name)){
-            if (paused){
+    private void Pause(InputAction.CallbackContext context)
+    {
+        if (manager.GetMoveability(SceneManager.GetActiveScene().name))
+        {
+            if (paused)
+            {
                 playerInputs.Player.Enable();
                 playerInputs.Menu.Disable();
                 manager.menuManager.ChangeMenu("HUD");
                 Time.timeScale = 1;
                 paused = false;
-            } else {
+            }
+            else
+            {
                 playerInputs.Menu.Enable();
                 playerInputs.Player.Disable();
                 manager.menuManager.ChangeMenu("Pause");
                 Time.timeScale = 0;
                 paused = true;
             }
-        } else {
-            if (paused){
+        }
+        else
+        {
+            if (paused)
+            {
                 pauseCanvas.gameObject.SetActive(false);
                 paused = false;
-            } else {
+            }
+            else
+            {
                 pauseCanvas.gameObject.SetActive(true);
                 paused = true;
             }

@@ -9,8 +9,10 @@ public class Checkpoint : MonoBehaviour
         manager = PlayerManager.Instance;
     }
 
-    private void OnTriggerEnter(Collider other) {
-        if (other.gameObject.tag == "Player"){
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
+        {
             manager.SaveGame("Auto");
             Debug.Log("Saved");
         }

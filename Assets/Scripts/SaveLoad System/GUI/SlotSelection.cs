@@ -7,12 +7,15 @@ using TMPro;
 public class SlotSelection : MonoBehaviour
 {
     public GameObject selected;
-    
-    private void Start() {
+
+    private void Start()
+    {
     }
 
-    public void LoadSelected(){
-        if (selected == null){
+    public void LoadSelected()
+    {
+        if (selected == null)
+        {
             return;
         }
         SaveData data = SaveSystem.LoadSave(selected.GetComponent<SelectSlot>().dataPath);

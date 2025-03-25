@@ -55,6 +55,21 @@ procedure Movement()
     movement = movement + direction * Time.deltaTime
 endprocedure
 
+procedure Movement()
+    inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized
+    if inputDirection.magnitude != 0
+        if movementState != PlayerMovementState.boosting
+            movementState = PlayerMovementState.walking
+        endif
+        float speedMultiplier = CalculateAccelerationMultiplier()
+        Vector3 multipliedVelocity = new Vector2(inputDirection.x, inputDirection.y) * movementAcceleration * speedMultiplier * Time.deltaTime
+        Vector3 directedVelocity = new Vector2(inputDirection.x, inputDirection.y) * movementAcceleration * 20 * Time.deltaTime
+        float alignment = Vector3.Dot(player.velocity.normalized, directedVelocity.normalized)
+        Vector3 lerpedVelocity = Vector3.Slerp(directedVelocity, multipliedVelocity, alignment)
+        player.AddForce(new Vector3(inputDirection.x, 0, inputDirection.y) * movementAcceleration * speedMultiplier * Time.deltaTime, ForceMode.Impulse)
+    endif
+endprocedure
+
 procedure Jump()
     direction = Vector3.up * jumpForce
     if velocity.y < 0 then

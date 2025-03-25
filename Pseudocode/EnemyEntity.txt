@@ -118,3 +118,28 @@ procedure RotateToTarget(target)
     dirInQuaternion = Quaternion.Euler(targetDirection.normalized)
     rigidbody.transform.rotation = Quaternion.Slerp(rigidbody.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime)
 endprocedure
+
+procedure Move()
+    distanceToTarget = target.transform.position - gameObject.transform.position
+    targetDirection = Vector3.forward
+
+    if (distanceToTarget.magnitude < NearTargetRange) then
+        targetDirection = Vector3.back
+    else if (distanceToTarget.magnitude > FarTargetRange) then
+        targetDirection = Vector3.forward
+    endif
+    targetDirection = rb.transform.rotation * targetDirection
+    
+
+    acceleration = BaseMovementAcceleration
+    if (rb.linearVelocity.magnitude > MaxMoveSpeed) then
+        acceleration *= rb.linearVelocity.magnitude / MaxMoveSpeed
+    endif
+    Vector3 direction = targetDirection * MaxMoveSpeed - rb.linearVelocity
+    
+    float directionMag = targetDirection.magnitude
+    targetDirection = Vector3.ProjectOnPlane(direction, groundNormal).normalized * acceleration
+
+    targetDirection -= targetDirection * frictionMultiplier
+    rb.AddForce(targetDirection * Time.deltaTime, ForceMode.VelocityChange)
+endprocedure

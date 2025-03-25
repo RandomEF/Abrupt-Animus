@@ -11,17 +11,25 @@ public class UISounds : MonoBehaviour, IPointerEnterHandler
 
     void Awake()
     {
-        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/UIHover.wav").Completed += (asyncOp) => {
-            if (asyncOp.Status == AsyncOperationStatus.Succeeded){
+        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/UIHover.wav").Completed += (asyncOp) =>
+        {
+            if (asyncOp.Status == AsyncOperationStatus.Succeeded)
+            {
                 uiHover = asyncOp.Result;
-            } else {
+            }
+            else
+            {
                 Debug.LogError("Failed to load UI audio.");
             }
         };
-        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/UISelect.wav").Completed += (asyncOp) => {
-            if (asyncOp.Status == AsyncOperationStatus.Succeeded){
+        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/UISelect.wav").Completed += (asyncOp) =>
+        {
+            if (asyncOp.Status == AsyncOperationStatus.Succeeded)
+            {
                 uiSelect = asyncOp.Result;
-            } else {
+            }
+            else
+            {
                 Debug.LogError("Failed to load UI audio.");
             }
         };
@@ -31,10 +39,12 @@ public class UISounds : MonoBehaviour, IPointerEnterHandler
         gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
-    public void OnPointerEnter(PointerEventData eventData){
+    public void OnPointerEnter(PointerEventData eventData)
+    {
         AudioManager.Instance.PlaySFXClip(uiHover, transform, 1);
     }
-    void OnClick(){
+    void OnClick()
+    {
         AudioManager.Instance.PlaySFXClip(uiSelect, transform, 1);
     }
 }

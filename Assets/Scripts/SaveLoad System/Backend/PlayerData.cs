@@ -1,17 +1,11 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class PlayerData
 {
-    [JsonIgnore]
-    public GameObject player;
-    [JsonIgnore]
-    public GameObject camera;
-
     public string currentScene;
     public float health;
     public float maxHealth;
@@ -26,13 +20,15 @@ public class PlayerData
     public float timeOnSave;
     public int totalKills;
 
-    public PlayerData(){
+    public PlayerData()
+    {
         currentScene = "Tutorial";
         health = 100f;
-        position = new SerVector3(0,0,0);
-        velocity = new SerVector3(0,0,0);
-        bodyRotation = new SerQuaternion(0,0,0,0);
-        lookRotation = new SerQuaternion(0,0,0,0);
+        maxHealth = health;
+        position = new SerVector3(0, 0.85f, 0);
+        velocity = new SerVector3(0, 0, 0);
+        bodyRotation = new SerQuaternion(0, 0, 0, 0);
+        lookRotation = new SerQuaternion(0, 0, 0, 0);
         weaponSlots = new List<WeaponData>();
         activeWeaponSlot = 0;
         merit = 0;
@@ -41,17 +37,20 @@ public class PlayerData
         totalKills = 0;
     }
 
-    public void UpdateData(){
+    public void UpdateData(GameObject player)
+    {
         currentScene = SceneManager.GetActiveScene().name;
         health = player.GetComponent<PlayerEntity>().Health;
         maxHealth = player.GetComponent<PlayerEntity>().MaxHealth;
         position = player.transform.position;
         velocity = player.GetComponent<Rigidbody>().linearVelocity;
         bodyRotation = player.transform.rotation;
-        lookRotation = camera.transform.rotation;
-        foreach (GameObject weapon in player.GetComponent<PlayerGunInteraction>().weaponSlots){
+        lookRotation = Camera.main.transform.rotation;
+        weaponSlots = new List<WeaponData>();
+        foreach (GameObject weapon in player.GetComponent<PlayerGunInteraction>().weaponSlots)
+        {
             Weapon weaponScript = weapon.GetComponent<Weapon>();
-            weaponSlots.Add(new WeaponData(weaponScript.WeaponType, weaponScript.TotalAmmo, weaponScript.AmmoInClip));
+            weaponSlots.Add(new WeaponData(weaponScript.WeaponType, weaponScript.TotalAmmo, weaponScript.AmmoInClip, weaponScript.ClipCapacity));
         }
         activeWeaponSlot = player.GetComponent<PlayerGunInteraction>().activeWeaponSlot;
         merit = PlayerManager.Instance.merit;
@@ -67,9 +66,12 @@ public class WeaponData
     public string name;
     public int totalAmmo;
     public int ammoInClip;
-    public WeaponData(string name, int totalAmmo, int ammoInClip){
+    public int clipCapacity;
+    public WeaponData(string name, int totalAmmo, int ammoInClip, int clipCapacity)
+    {
         this.name = name;
         this.totalAmmo = totalAmmo;
         this.ammoInClip = ammoInClip;
+        this.clipCapacity = clipCapacity;
     }
 }

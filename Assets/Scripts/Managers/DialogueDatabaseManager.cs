@@ -6,28 +6,32 @@ using System.IO;
 public class DialogueDatabaseManager : MonoBehaviour
 {
     public static DialogueDatabaseManager Instance;
-    
+
     void Awake()
     {
-        if (Instance == null){
+        if (Instance == null)
+        {
             Instance = this;
         }
     }
     public IDbConnection OpenDialogueDb()
     {
-        return OpenDb("Dialogue", new string[] {"english TEXT"});
+        return OpenDb("Dialogue", new string[] { "english TEXT" });
     }
-    public IDbConnection OpenActorDb(){
-        return OpenDb("Actor", new string[] {"actor TEXT"});
+    public IDbConnection OpenActorDb()
+    {
+        return OpenDb("Actor", new string[] { "actor TEXT" });
     }
-    private IDbConnection OpenDb(string tableName, string[] columns){
+    private IDbConnection OpenDb(string tableName, string[] columns)
+    {
         string database = "URI=file:" + Path.Combine(Application.streamingAssetsPath, "Dialogue.sqlite");
         IDbConnection connection = new SqliteConnection(database);
         connection.Open();
         IDbCommand createTable = connection.CreateCommand();
 
         string columnText = "";
-        foreach(string column in columns){
+        foreach (string column in columns)
+        {
             columnText += column + ", ";
         }
         columnText = columnText[..^2];

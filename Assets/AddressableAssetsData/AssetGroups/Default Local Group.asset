@@ -18,7 +18,8 @@ MonoBehaviour:
   - m_GUID: 1da9dcbf0509c47498763857223e8eda
     m_Address: Assets/Audio/SFX/UISelect.wav
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - SFX
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2c03d4c47813cb14fb76b3dc96632cb3
     m_Address: Assets/Weapons/Guns/Gun.prefab
@@ -30,7 +31,8 @@ MonoBehaviour:
   - m_GUID: 3989d55aa314d4445b44d1b853c27a0d
     m_Address: Assets/Audio/SFX/UIHover.wav
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - SFX
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 792da336a40538c43926a59a3fb4434e
     m_Address: Assets/Audio/SFX/PlayerDeath.wav

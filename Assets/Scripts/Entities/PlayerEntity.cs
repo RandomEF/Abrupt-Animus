@@ -14,32 +14,43 @@ public class PlayerEntity : Entity
 
     void Awake()
     {
-        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/PlayerDeath.wav").Completed += (asyncOp) => {
-            if (asyncOp.Status == AsyncOperationStatus.Succeeded){
+        Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/PlayerDeath.wav").Completed += (asyncOp) =>
+        {
+            if (asyncOp.Status == AsyncOperationStatus.Succeeded)
+            {
                 death = asyncOp.Result;
-            } else {
+            }
+            else
+            {
                 Debug.LogError("Failed to load player death audio.");
             }
         };
     }
 
-    public override void Start() {
+    public override void Start()
+    {
         Health = MaxHealth;
-        if (slider == null){
+        if (slider == null)
+        {
             Debug.Log("Health slider not assigned");
             run = false;
-        } else if (healthText == null){
+        }
+        else if (healthText == null)
+        {
             Debug.Log("Health text not assigned.");
             run = false;
         }
     }
 
-    public void UpgradeHealth(float extra){
+    public void UpgradeHealth(float extra)
+    {
         MaxHealth += extra;
     }
-    
-    private void Update() {
-        if (!run){
+
+    private void Update()
+    {
+        if (run)
+        {
             slider.value = Health / MaxHealth;
             healthText.text = Health.ToString();
         }
@@ -47,6 +58,8 @@ public class PlayerEntity : Entity
 
     public override void Kill()
     {
+        PlayerManager.Instance.inputs.Player.Disable();
+        PlayerManager.Instance.PlayerDeath();
         MenuManager.Instance.ChangeMenu("Death");
         AudioManager.Instance.PlaySFXClip(death, transform, 1f);
     }

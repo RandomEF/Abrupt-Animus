@@ -2,19 +2,23 @@
 public class LevelBullets
 {
     public BulletSaveData[] level1;
-    public LevelBullets(){
+    public LevelBullets()
+    {
         level1 = new BulletSaveData[50];
     }
 }
 [System.Serializable]
-public class BulletSaveData{
+public class BulletSaveData
+{
     public SerVector3 position;
     public int timePlacedIntoSave;
-    public BulletSaveData(){
-        position = new SerVector3(0,0,0);
+    public BulletSaveData()
+    {
+        position = new SerVector3(0, 0, 0);
         timePlacedIntoSave = -1;
     }
-    public BulletSaveData(SerVector3 position, int currentTime){
+    public BulletSaveData(SerVector3 position, int currentTime)
+    {
         this.position = position;
         timePlacedIntoSave = currentTime;
     }

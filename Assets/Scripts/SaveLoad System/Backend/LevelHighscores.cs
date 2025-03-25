@@ -4,7 +4,8 @@ using System.Collections.Generic;
 public class LevelHighscores
 {
     public HighscoreData level1;
-    public LevelHighscores(){
+    public LevelHighscores()
+    {
         level1 = new HighscoreData();
     }
 }
@@ -17,14 +18,16 @@ public class HighscoreData
     public bool[] secretsFound;
     public int deaths;
     public List<string> weaponsUsed;
-    public HighscoreData(){
+    public HighscoreData()
+    {
         time = 0;
         enemiesKilled = 0;
         secretsFound = new bool[5];
         deaths = 0;
         weaponsUsed = new List<string>();
     }
-    public HighscoreData(int time, int enemiesKilled, bool[] secretsFound, int deaths, List<string> weaponsUsed){
+    public HighscoreData(int time, int enemiesKilled, bool[] secretsFound, int deaths, List<string> weaponsUsed)
+    {
         this.time = time;
         this.enemiesKilled = enemiesKilled;
         this.secretsFound = secretsFound;

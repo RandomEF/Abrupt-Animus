@@ -8,16 +8,19 @@ public class GUISlots : MonoBehaviour
     [SerializeField] GameObject slotPrefab;
 
     private List<SaveSlot> slots;
-    private void Start() {
+    private void Start()
+    {
         DisplaySaves();
     }
-    public void DisplaySaves(){
-        for (int i = gameObject.transform.childCount - 1; i >= 0 ; i--)
+    public void DisplaySaves()
+    {
+        for (int i = gameObject.transform.childCount - 1; i >= 0; i--)
         {
             Destroy(gameObject.transform.GetChild(i).gameObject);
         }
         slots = SaveSystem.ListAllSlots();
-        foreach (SaveSlot slot in slots){
+        foreach (SaveSlot slot in slots)
+        {
             GameObject slotInList = Instantiate(slotPrefab, gameObject.transform);
             var image = slotInList.transform.GetChild(0);
             slotInList.transform.GetChild(1).GetComponent<SelectSlot>().dataPath = slot.dataPath;

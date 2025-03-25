@@ -24,10 +24,17 @@ This is a movement-based FPS game, where the aim of the game is to manage your m
 - Single line parser for dialogue system
 - Sliding
 - Shooting
+- Zoom
+- Reloading
+- Wallrunning
+- Saving
+- Loading (partially)
+- GUIs (partial)
+- Player death
+- Level loading
 
 ## **To do**
 
-- Wallrunning
 - Grappling
 - Animations
 - Character models

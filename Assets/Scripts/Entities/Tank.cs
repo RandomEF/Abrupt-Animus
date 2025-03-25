@@ -1,5 +1,5 @@
 public class Tank : EnemyEntity
 {
     public override float MaxMoveSpeed => 1f;
-    public override int value => 100;
+    public override int merit => 100;
 }
