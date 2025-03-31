@@ -30,25 +30,23 @@ public class PlayerLook : MonoBehaviour
     }
     void Look()
     {
-        Vector2 lookMotion = lookAction.ReadValue<Vector2>() * sensitivity / 20;
-        playerBody.rotation = playerBody.rotation * Quaternion.Euler(Vector3.up * lookMotion.x);
+        Vector2 lookMotion = lookAction.ReadValue<Vector2>() * sensitivity / 20; // Work out the effective motion of the camera
+        playerBody.rotation = playerBody.rotation * Quaternion.Euler(Vector3.up * lookMotion.x); // Apply the body rotation
 
-        verticalRotation -= lookMotion.y;
-        verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
-        transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+        verticalRotation -= lookMotion.y; // Work out the total vertical rotation
+        verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f); // Clamp the output to stop the player looking upside down
+        transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f); // Apply the camera rotation
     }
     public void SetCursorLock(Scene scene, LoadSceneMode _)
     {
         if (manager.GetMoveability(scene.name) && !MenuManager.Instance.GetCurrentCanvasInteractability())
-        {
-            //Debug.Log(manager.GetMoveability(scene.name));
-            //Debug.Log(MenuManager.Instance.GetCurrentCanvasInteractability());
-            Cursor.lockState = CursorLockMode.Locked;
+        { // If the player can move, and the current canvas isn't interactable
+            Cursor.lockState = CursorLockMode.Locked; // Lock the player's cursor
             Debug.Log("Locked cursor.");
         }
         else
         {
-            Cursor.lockState = CursorLockMode.None;
+            Cursor.lockState = CursorLockMode.None; // Unlock the player's cursor
             Debug.Log("Unlocked cursor.");
         }
     }

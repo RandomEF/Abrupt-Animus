@@ -3,9 +3,6 @@ using System;
 using System.Data;
 using System.IO;
 using System.Reflection;
-using UnityEditor.Compilation;
-using UnityEditor.Search;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -89,7 +86,6 @@ public class PlayerManager : MonoBehaviour
         merit = saveData.playerData.merit; // Set the merit the player has
         sanity = saveData.playerData.sanity; // Set the player's sanity level
         totalKills = saveData.playerData.totalKills; // Set the player's total kills
-        //menuManager.ChangeMenu(GetCanvasOpen(SceneManager.GetActiveScene().name)); // Used to disable the death screen once you have died
     }
 
     public void SetSlotandData(int slot, SaveData data)
@@ -100,10 +96,15 @@ public class PlayerManager : MonoBehaviour
 
     public void LoadSlot(string sceneName)
     {
-        sceneLoader.gameObject.SetActive(true); // Enables the load screen
-        sceneLoader.Load(sceneName, gameObject); // Once the new scene has loaded, execution will return here
-        //FetchReferences();
-        sceneLoader.gameObject.SetActive(false); // Disables the load screen
+        if(Application.CanStreamedLevelBeLoaded(sceneName)){ // Check if the level exists
+            menuManager.DisableAll();
+            sceneLoader.gameObject.SetActive(true); // Enables the load screen
+            sceneLoader.Load(sceneName); // Once the new scene has loaded, execution will return here
+        }
+        else
+        {
+            Debug.LogError($"Scene '{sceneName}' does not exist.");
+        }
     }
 
     public void LoadGame()
@@ -202,6 +203,7 @@ public class PlayerManager : MonoBehaviour
 
     void SceneLoad(Scene scene, LoadSceneMode __)
     {
+        sceneLoader.gameObject.SetActive(false);
         if (GetMoveability(scene.name))
         { // If the player should move
             inputs.Player.Enable(); // Enable movement
@@ -230,7 +232,7 @@ public class PlayerManager : MonoBehaviour
     {
         Camera.main.GetComponent<PlayerLook>().SetCursorLock(SceneManager.GetActiveScene(), new LoadSceneMode()); // Set whether the cursor should be locked or not
     }
-    
+
     public void Quit()
     {
 #if UNITY_EDITOR // If this function is being run inside the Unity Editor

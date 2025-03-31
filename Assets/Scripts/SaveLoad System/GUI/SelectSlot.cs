@@ -5,7 +5,11 @@ public class SelectSlot : MonoBehaviour
     public string dataPath;
     public void SelectThisSlot()
     {
-        SlotSelection button = GameObject.Find("Load").GetComponent<SlotSelection>();
+        GameObject obj = GameObject.Find("Load");
+        Debug.Log(obj);
+        Debug.Log(obj.GetInstanceID());
+        SlotSelection button = obj.GetComponent<SlotSelection>();
+        Debug.Log(button);
         button.selected = gameObject;
     }
 }

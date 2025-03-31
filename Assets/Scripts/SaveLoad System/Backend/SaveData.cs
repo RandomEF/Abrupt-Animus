@@ -5,21 +5,18 @@ public class SaveData
 {
     public PlayerData playerData;
     public WorldFlags worldFlags;
-    public LevelBullets levelBullets;
     public LevelHighscores levelHighscores;
+    public LevelBullets levelBullets;
 
     public SaveData()
-    {
+    { // Initialises new save data with the default values
         playerData = new PlayerData();
         worldFlags = new WorldFlags();
-        levelBullets = new LevelBullets();
         levelHighscores = new LevelHighscores();
+        levelBullets = new LevelBullets();
     }
     public void UpdateSaveData(GameObject player)
-    {
+    { // Update the player's save data
         playerData.UpdateData(player);
-        //worldFlags.UpdateData(); No need to update, since they are updated the instant they change and same for the 2 below
-        //levelBullets.UpdateData();
-        //levelHighscores.UpdateData();
     }
 }

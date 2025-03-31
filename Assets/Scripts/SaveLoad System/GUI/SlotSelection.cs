@@ -1,15 +1,14 @@
 using System;
-using System.IO;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using TMPro;
 
 public class SlotSelection : MonoBehaviour
 {
     public GameObject selected;
-
-    private void Start()
-    {
+    private void Awake() {
+        Debug.Log(gameObject);
+        Debug.Log(gameObject.GetComponent<SlotSelection>());
+        Debug.Log(gameObject.GetInstanceID());
     }
 
     public void LoadSelected()
