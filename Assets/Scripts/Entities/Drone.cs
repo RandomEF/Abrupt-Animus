@@ -74,8 +74,9 @@ public class Drone : EnemyEntity
 
     protected override void RotateToTarget(Transform target)
     {
-        Vector3 targetDirection = (target.transform.position - rb.transform.position).normalized; // Get direction to target
-        Quaternion dirInQuaternion = Quaternion.LookRotation(targetDirection); // Turn it into a rotation
-        rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime); // Interpolate between the current rotation and the intended
+        Vector3 targetDirection = target.transform.position - weapon.transform.position; // Get the direction from the weapon to the target
+        //weapon.transform.rotation = Quaternion.Slerp(weapon.transform.rotation, Quaternion.LookRotation(targetDirection.normalized, Vector3.up), RotationSpeed * Time.fixedDeltaTime);
+        Quaternion dirInQuaternion = Quaternion.LookRotation(targetDirection.normalized, Vector3.up); // Rotation for the next step 
+        rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime); // Rotate the enemy so that the gun is in position to fire the player
     }
 }

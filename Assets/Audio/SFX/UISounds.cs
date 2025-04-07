@@ -12,10 +12,10 @@ public class UISounds : MonoBehaviour, IPointerEnterHandler
     void Awake()
     {
         Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/UIHover.wav").Completed += (asyncOp) =>
-        {
+        { // Attempt to load the hover effect
             if (asyncOp.Status == AsyncOperationStatus.Succeeded)
-            {
-                uiHover = asyncOp.Result;
+            { // If the load succeeds
+                uiHover = asyncOp.Result; // Assign the hover sound
             }
             else
             {
@@ -23,10 +23,10 @@ public class UISounds : MonoBehaviour, IPointerEnterHandler
             }
         };
         Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/UISelect.wav").Completed += (asyncOp) =>
-        {
+        { // Attempt to load the select effect
             if (asyncOp.Status == AsyncOperationStatus.Succeeded)
-            {
-                uiSelect = asyncOp.Result;
+            { // If the load succeeds
+                uiSelect = asyncOp.Result; // Assign the hover sound
             }
             else
             {
@@ -35,16 +35,17 @@ public class UISounds : MonoBehaviour, IPointerEnterHandler
         };
     }
     void Start()
-    {
+    { // Run OnClick when the button is clicked
         gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        AudioManager.Instance.PlaySFXClip(uiHover, transform, 1);
-    }
     void OnClick()
     {
-        AudioManager.Instance.PlaySFXClip(uiSelect, transform, 1);
+        AudioManager.Instance.PlaySFXClip(uiSelect, transform, 1); // Play uiSelect
+    }
+    
+    public void OnPointerEnter(PointerEventData eventData)
+    { // When the mouse hovers over the button
+        AudioManager.Instance.PlaySFXClip(uiHover, transform, 1); // Play uiHover
     }
 }

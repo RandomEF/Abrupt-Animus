@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Unity.VisualScripting;
 using System.Text;
+using Unity.Collections;
 
 public class DialogueInteraction : Interactable
 {
@@ -25,12 +26,14 @@ public class DialogueInteraction : Interactable
         dialogueManager = DialogueManager.Instance; // Fetch the dialogue manager
         filepath = Path.Combine(Application.streamingAssetsPath, "Dialogue", dialogueFile.name + ".dlg"); // The path to the dialogue file
         PreprocessSections(); // Fetch the dialogue sections
+        Debug.Log(ConvertLine("This is a _spooky_ line filled with <#FFFF00*great* things> ---_and_ *bad* things."));
     }
     public override void Interact()
     {
         (string, string, string[]) output = RetrieveNextLine(); // Get the next line
         if (output.Item1 == "line")
         { // If it is a line, send it to the dialogue manager
+            Debug.Log($"Sending line '{output.Item2 + ": " + output.Item3[0]}'");
             dialogueManager.DisplayLine(output.Item2 + ": " + output.Item3[0]);
         }
     }
@@ -57,7 +60,7 @@ public class DialogueInteraction : Interactable
         bool success = response.Read(); // Read a line and store it
         if (!success)
         { // If the query failed
-            Debug.LogError($"Line {lineID} is not in {(isDialogue ? "Dialogue" : "Actor")} table");
+            Debug.LogError($"{(isDialogue ? "Line" : "Actor")} {lineID} is not in {(isDialogue ? "Dialogue" : "Actor")} table");
             connection.Close();
             return ""; // Return an empty string
         }
@@ -67,7 +70,7 @@ public class DialogueInteraction : Interactable
     }
     private string ConvertLine(string line)
     {
-        string copy = line; // Store a cory of the line
+        string copy = "";
         bool firstItalics = true; // Tracks whether the first underscore is yet to come
         bool firstBold = true; // Tracks whether the first asterisk is yet to come
         for (int i = 0; i < line.Length; i++)
@@ -120,7 +123,7 @@ public class DialogueInteraction : Interactable
         return copy;
     }
     // DLG Interpreter
-    private int lineNumber = 1; // The line of the file that the interpreter is on
+    private int lineNumber = 2; // The line of the file that the interpreter is on
     /*
     -> is the goto operator
     [] is dialogue section
@@ -138,30 +141,32 @@ public class DialogueInteraction : Interactable
             (string, string, string[]) returnVals = Analyzer(tokenTree); // Analyse the tokens of the lines
             string type = returnVals.Item1;
             if (type == "true")
-            {
-                continue;
+            { // If the analyzer has decided another line must be read
+                continue; // Read another line
             }
 
-            if (type == "choice")
+            if (type == "line")
             {
-                string[] lines = returnVals.Item3;
-                string[] convertedLines = new string[lines.Length];
+                string actor = returnVals.Item2; // Retrieve the actor
+                string line = ConvertLine(returnVals.Item3[0]); // Convert the lone line
+                string[] lines = new string[1]; // Make a new array of length 1 to store the converted line
+                lines[0] = line; // Store the line in the return output
+                return (type, actor, lines); // Return as appropriate
+            }
+            else if (type == "choice")
+            { // If the node is a choice node
+                string[] lines = returnVals.Item3; // Fetch all the dialogue options
+                string[] convertedLines = new string[lines.Length]; // Make a new array for however many dialogue options
                 for (int i = 0; i < lines.Length; i++)
-                {
-                    convertedLines[i] = ConvertLine(lines[i]);
+                { // For each option
+                    convertedLines[i] = ConvertLine(lines[i]); // Convert it and assign to the return output
                 }
                 return (type, returnVals.Item2, convertedLines); // returnVals.Item2 will be blank as the actor is assumed to be the player, but this must be passed through to fulfill the return type conditions
-            } /*else if (type == "facing"){
+            } 
+            /*else if (type == "facing")
+            {
 
             } */
-            else if (type == "line")
-            {
-                string actor = returnVals.Item2;
-                string line = ConvertLine(returnVals.Item3[0]);
-                string[] lines = new string[1];
-                lines[0] = line;
-                return (type, actor, lines);
-            }
             else
             {
                 throw new Exception($"Line Retrieval: '{type}' was not a recognised type.");
@@ -170,48 +175,49 @@ public class DialogueInteraction : Interactable
     }
     private TreeNode Tokenizer()
     {
-        if (fileReader == null)
-        {
-            fileReader = new StreamReader(filepath); // Reopen the file
-        }
-        for (int i = 0; i < lineNumber; i++)
-        {
-            fileReader.ReadLine(); // Skip lines until the current one is reached
-        }
         TreeNode fileTree = new TreeNode(); // This is here in case a choice exists, in which case multiple lines need to be read at once
-        int lastLineNumber = lineNumber - 1;
-        string line = fileReader.ReadLine(); // Read the current line
-        while (!fileReader.EndOfStream && lastLineNumber != lineNumber)
-        {
-            byte[] lineBytes = Encoding.UTF8.GetBytes(line); // Convert into a list of characters
-            MemoryStream stream = new MemoryStream(lineBytes); // Make into a stream for StreamReader later
-            lastLineNumber = lineNumber; // Set the previous line
-            if (line.Length < 3)
-            { // The minimum length of the line cannot go below 3
-                throw new System.Exception($"Tokenizer: The line '{line}' is missing information.");
+        using (StreamReader fileReader = new StreamReader(filepath)){
+            for (int i = 0; i < lineNumber - 1; i++)
+            {
+                fileReader.ReadLine(); // Skip lines until the current one is reached
             }
-            StreamReader lineReader = new StreamReader(stream); // Prepare for reading per character
-            TreeNode lineTree = new TreeNode(); // New node for the line
-            fileTree.AddChild(lineTree); // Add the node to the file tree
-            ReadNext(lineReader, lineTree); // Tokenize the line
-            bool shouldStay = false; // Initialise shouldStay
-            if (fileTree.GetChildren()[^1].GetNodeType() == "choice")
-            { // If the node is a choice node
-                if (fileTree.GetChildren()[^1].value["end"] == "false")
-                { // If it is not the last node in the choice - it is necessary to put this on a separate line to avoid an error
-                    shouldStay = true; // Require reading the next line
+            int lastLineNumber = lineNumber - 1;
+            string line = fileReader.ReadLine(); // Read the current line
+            while (!fileReader.EndOfStream && lastLineNumber != lineNumber)
+            {
+                if (line.Length < 3)
+                { // The minimum length of the line cannot go below 3
+                    throw new Exception($"Tokenizer: The line '{line}' is missing information.");
                 }
-            }
+                byte[] lineBytes = Encoding.UTF8.GetBytes(line); // Convert into a list of characters
+                MemoryStream stream = new MemoryStream(lineBytes); // Make into a stream for StreamReader later
+                lastLineNumber = lineNumber; // Set the previous line
+                StreamReader lineReader = new StreamReader(stream); // Prepare for reading per character
+                TreeNode lineTree = new TreeNode(); // New node for the line
+                lineTree.AddType("linetree");
+                fileTree.AddChild(lineTree); // Add the node to the file tree
+                ReadNext(lineReader, lineTree); // Tokenize the line
+                bool shouldStay = false; // Initialise shouldStay
+                if (fileTree.GetChildren()[^1].GetChildren()[^1].GetNodeType() == "choice")
+                { // If the node is a choice node
+                    if (fileTree.GetChildren()[^1].GetChildren()[^1].value["end"] == "false")
+                    { // If it is not the last node in the choice - it is necessary to put this on a separate line to avoid an error
+                        shouldStay = true; // Require reading the next line
+                    }
+                }
 
-            string nextLine = fileReader.ReadLine(); // Check the next line
+                string nextLine = fileReader.ReadLine(); // Check the next line
 
-            if (nextLine[0] != '[' && nextLine != null)
-            { // If the next line isn't a dialogue section header or the end of the file
-                lineNumber++; // Now on the next line
-                line = nextLine; // Set the current line
-                if (!shouldStay)
-                { // If staying is not required
-                    break; // Exit
+                if (nextLine[0] != '[' && nextLine != null)
+                { // If the next line isn't a dialogue section header or the end of the file
+                    lineNumber++; // Now on the next line
+                    line = nextLine; // Set the current line
+                    if (!shouldStay)
+                    { // If staying is not required
+                        break; // Exit
+                    } else {
+                        throw new Exception("Expected another line to complete the choice: maybe you have an extra comma?");
+                    }
                 }
             }
         }
@@ -221,7 +227,7 @@ public class DialogueInteraction : Interactable
     private void ReadNext(StreamReader line, TreeNode lineTree)
     {
         while (!line.EndOfStream)
-        {
+        { // While the end of the line hasn't been reached
             char token = ReadChar(line);
             if (token == '#')
             {
@@ -245,93 +251,90 @@ public class DialogueInteraction : Interactable
                 if (token == ':')
                 {
                     ReadSeparator(line, lineTree);
-                } /*else if (token == '-'){
-                    ReadAnimation(line, lineTree);
-                }*/
             }
             else
             {
-                throw new System.Exception($"Tokenizer: The starting character '{token}' was not recognised.");
+                throw new Exception($"Tokenizer: The starting character '{token}' was not recognised.");
             }
         }
     }
+                } /*else if (token == '-'){
+                    ReadAnimation(line, lineTree);
+                }*/
     private char ReadChar(StreamReader line)
     {
-        Int32 character = 32;
+        int character = 32; // ASCII for space
         while (character == 32)
-        {
+        { // Skips over spaces
             character = line.Read();
         }
-        return character == -1 ? throw new System.Exception("Tokenizer: Nothing left to read.") : (char)character;
+        return character == -1 ? throw new Exception("Tokenizer: Nothing left to read.") : (char)character; // If it is not the end of the line, return the char
     }
     private char PeekChar(StreamReader line)
     {
-        Int32 character = 32;
+        int character = 32; // ASCII for space
         while (character == 32)
-        {
+        { // Skips over spaces
             character = line.Peek();
         }
-        return character == -1 ? throw new System.Exception("Tokenizer: Nothing left to peek.") : (char)character;
+        return character == -1 ? throw new Exception("Tokenizer: Nothing left to peek.") : (char)character; // If it is not the end of the line, return the char
     }
     private void ReadID(StreamReader line, TreeNode lineTree)
     {
-        char character = ReadChar(line);
-        int id = ReadNumber(line);
-        TreeNode idNode = new TreeNode();
-        lineTree.AddChild(idNode);
+        char character = ReadChar(line); // Read the next character
+        int id = ReadNumber(line); // Read the number attached to it
+        TreeNode idNode = new TreeNode(); // Make a new ID node
+        lineTree.AddChild(idNode); // Add it to the line's children
 
         if (character == 'A')
-        {
+        { // If the ID is an actor
             idNode.AddType("actor");
         }
         else if (character == 'L')
-        {
+        { // If the ID is a line
             idNode.AddType("line");
         }
         else
         {
             throw new Exception($"Tokenizer: Unable to decide if this is an actor or line reference: {character}");
         }
-        idNode.value.Add("id", id.ToString());
+        idNode.value.Add("id", id.ToString()); // Add the number to the node's dictionary
     }
     private int ReadNumber(StreamReader line)
     {
         string num = "";
         while (!line.EndOfStream)
-        {
-            char character = PeekChar(line);
+        { // While the end of the line hasn't been reached
+            char character = PeekChar(line); // Peek a character
             if (int.TryParse(character.ToString(), out _))
-            {
-                num += ReadChar(line);
+            { // If it is a number
+                num += ReadChar(line); // Read it and and it to the number string
             }
             else
             {
                 break;
             }
         }
-        int inted;
-        int.TryParse(num, out inted);
-        return inted;
+        return int.Parse(num); // Return the number
     }
     private void ReadIf(StreamReader line, TreeNode lineTree)
     {
-        TreeNode ifNode = new TreeNode();
-        lineTree.AddChild(ifNode);
-        ReadVariable(line, ifNode);
-        ReadOperator(line, ifNode);
-        ifNode.AddType("if");
-        //ifNode.value.Add("op");
-        char character = PeekChar(line);
-        if (Char.IsNumber(character))
-        {
+        TreeNode ifNode = new TreeNode(); // Make a new node
+        lineTree.AddChild(ifNode); // Add it to lineTree's children
+        ifNode.AddType("if"); // Set the type to 'if'
+        ReadVariable(line, ifNode); // Read the variable and add it to ifNode's children
+        ReadOperator(line, ifNode); // Read the operator and add it to ifNode's children
+        char character = PeekChar(line); // Peek at the next character
+        if (char.IsNumber(character))
+        { // If it is a number
             TreeNode numNode = new TreeNode();
-            ifNode.AddChild(numNode);
-            numNode.AddType("num");
-            numNode.value.Add("num", ReadNumber(line).ToString());
+            ifNode.AddChild(numNode); // Make a new child node to store the number
+            numNode.AddType("num"); // Set the type to 'num'
+            numNode.value.Add("num", ReadNumber(line).ToString()); // Assign the number to numNode
         }
-        else if (Char.IsLetter(character) || character == '_')
-        {
-            ReadVariable(line, ifNode);
+        else if (char.IsLetter(character) || character == '_')
+        { // If the next character is a letter or _
+            ReadVariable(line, ifNode); // Read a variable
         }
         else
         {
@@ -340,53 +343,52 @@ public class DialogueInteraction : Interactable
     }
     private void ReadVariable(StreamReader line, TreeNode lineTree)
     {
-        TreeNode variableNode = new TreeNode();
-        lineTree.AddChild(variableNode);
-        string variable = "";
-        char character = PeekChar(line);
-        if (Char.IsNumber(character))
-        {
+        char character = PeekChar(line); // Check what the next character is
+        if (char.IsNumber(character))
+        { // A variable name can't start with a number
             throw new Exception("Tokenizer: Variable can't start with a number!");
         }
+        TreeNode variableNode = new TreeNode(); // Make a new node
+        lineTree.AddChild(variableNode); // Add it to lineTree's children
+        string variable = ""; // Define variable
         while (!line.EndOfStream)
-        {
-            character = PeekChar(line);
-            if (Char.IsLetterOrDigit(character) || character == '_')
-            {
-                variable += ReadChar(line);
+        { // Until the end of the line
+            character = PeekChar(line); // Peek at the next character
+            if (char.IsLetterOrDigit(character) || character == '_')
+            { // If the character is valid
+                variable += ReadChar(line); // Read it and add it to the name
             }
             else
             {
                 break;
             }
         }
-        variableNode.AddType("var");
-        variableNode.value.Add("var", variable);
+        variableNode.AddType("var"); // Add the type 'var'
+        variableNode.value.Add("var", variable); // Add the name of the variable
     }
     private string ReadOperator(StreamReader line, TreeNode lineTree)
     {
-        string op = "";
-        char[] opChars = { '!', '>', '<', '=' };
-        //string[] operators = {"==", "<=", ">=", "!="};
-        TreeNode opNode = new TreeNode();
-        lineTree.AddChild(opNode);
+        string op = ""; // Create a variable to hold the operator
+        char[] opChars = { '!', '>', '<', '=' }; // List of the acceptable characters
+        TreeNode opNode = new TreeNode(); // Make a new node
+        lineTree.AddChild(opNode); // Add it to lineTree's children
         while (!line.EndOfStream)
-        {
-            char character = PeekChar(line);
+        { // While not the end of the line
+            char character = PeekChar(line); // Check the next character
             if (op.Length == 0 && opChars.Contains(character))
-            {
-                op += ReadChar(line);
+            { // If nothing has been read and its a valid character
+                op += ReadChar(line); // Add it to the string
             }
-            else if (op.Length == 1 && character == '=')
-            {
-                op += ReadChar(line);
-                opNode.AddType("comp");
-                opNode.value.Add("op", op);
+            else if (op.Length == 1 && opChars.Contains(character))
+            { // If it is an comparison
+                op += ReadChar(line); // Add the character to the string
+                opNode.AddType("comp"); // Assign the type as comparison
+                opNode.value.Add("op", op); // Add the comparison type
                 return op;
             }
             else if (op.Length == 1 && op == "=")
-            {
-                opNode.AddType("assign");
+            { // If it is only an assignment
+                opNode.AddType("assign"); // Set the type as assignmentt
                 return op;
             }
             else
@@ -398,18 +400,18 @@ public class DialogueInteraction : Interactable
     }
     private void ReadJump(StreamReader line, TreeNode lineTree)
     {
-        char character = ReadChar(line);
+        char character = ReadChar(line); // Read the next character
         if (character == '>')
-        {
-            string section = "";
+        { // If it is an arror
+            string section = ""; // Define a variable for the section name
             while (!line.EndOfStream)
-            {
+            { // Copy all other characters as the section name
                 section += ReadChar(line);
             }
-            TreeNode sectionNode = new TreeNode();
-            lineTree.AddChild(sectionNode);
-            sectionNode.AddType("jump");
-            sectionNode.value.Add("section", section);
+            TreeNode sectionNode = new TreeNode(); // Create a new node
+            lineTree.AddChild(sectionNode); // Add it to lineTree's children
+            sectionNode.AddType("jump"); // Set the type as jump
+            sectionNode.value.Add("section", section); // Set the section name
         }
         else
         {
@@ -418,40 +420,34 @@ public class DialogueInteraction : Interactable
     }
     private void ReadChoice(StreamReader line, TreeNode lineTree)
     {
-        TreeNode choiceNode = new TreeNode();
-        choiceNode.AddType("choice");
-        lineTree.AddChild(choiceNode);
-        if (!line.EndOfStream)
-        {
-            char character = ReadChar(line);
-            if (character == ',')
-            {
-                choiceNode.value.Add("end", "false");
-            }
-            else if (character == '#')
-            {
+        TreeNode choiceNode = new TreeNode(); // Make a new node
+        choiceNode.AddType("choice"); // Set the type as choice
+        lineTree.AddChild(choiceNode); // Add to lineTree's children
+        while (!line.EndOfStream)
+        { // If it isn't the end of the line
+            char character = ReadChar(line); // Get the next character
+            
+            if (character == '#')
+            { // Read an ID
                 ReadID(line, lineTree);
+            }
+            else if (character == ',')
+            { // If there is a comma
+                choiceNode.value.Add("end", "false"); // Mark that there will be another line
+                return;
             }
             else
             {
                 throw new Exception($"Tokenizer: Unrecognised character '{character}' following choice line");
             }
         }
-        else
-        {
-            choiceNode.value.Add("end", "true");
-        }
+        choiceNode.value.Add("end", "true"); // No comma = last option
     }
     private void ReadSeparator(StreamReader line, TreeNode lineTree)
-    {
-        char character = PeekChar(line);
-        if (character == ':')
-        {
-            ReadChar(line);
-            TreeNode separatorNode = new TreeNode();
-            separatorNode.AddType("sep");
-            lineTree.AddChild(separatorNode);
-        }
+    { // Required to check for proper syntax
+        TreeNode separatorNode = new TreeNode(); // Make a new node
+        separatorNode.AddType("sep"); // Set the type as a separator
+        lineTree.AddChild(separatorNode); // Add to lineTree's children
     }/*
     private void ReadAnimation(StreamReader line, TreeNode lineTree){
         char character = PeekChar(line);
@@ -466,81 +462,82 @@ public class DialogueInteraction : Interactable
     // Analysis
     private (string, string, string[]) Analyzer(TreeNode fileTree)
     {
-        string[] lines = new string[fileTree.GetChildren().Count];
-        string returnType = "none";
-        string[] returnLines = new string[lines.Length];
+        string[] lines = new string[fileTree.GetChildren().Count]; // Make a new return array based on the number of lines
+        string returnType = "none"; // Default return type
+        string[] returnLines = new string[lines.Length]; // Copy of lines
         for (int i = 0; i < fileTree.GetChildren().Count; i++)
-        {
-            TreeNode line = fileTree.GetChildren()[i];
-            List<TreeNode> elements = line.GetChildren();
+        { // For each line
+            TreeNode line = fileTree.GetChildren()[i]; // Get the line
+            List<TreeNode> elements = line.GetChildren(); // Get the elements of the line
             if (elements[0].GetNodeType() == "actor")
-            {
+            { // If the line is an actor
+                /*
                 if (elements[1].GetNodeType() == "anim")
                 {
                     returnType = "animation";
                     string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     string[] animID = { elements[1].value["num"] };
                     return (returnType, returnActor, animID);
-                }/* else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "actor"){
+                } else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "actor"){
                     returnType = "facing";
                     string returnActor1 = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     string[] returnActor2 = {RequestNext(false, "actor", Int32.Parse(elements[2].value["id"]))};
                     return (returnType, returnActor1, returnActor2);
-                } */
-                else if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "line")
+                } 
+                else */ 
+                /* if (elements[1].GetNodeType() == "anim")
                 {
-                    returnType = "line";
-                    returnLines[i] = LineAnalysis(elements.GetRange(2, elements.Count - 2));
-                    string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
-                    return (returnType, returnActor, returnLines);
-                }/* else if (elements[1].GetNodeType() == "anim"){
                     returnType = "anim";
                     string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"]));
                     string[] animID = {elements[1].value["num"]};
                     return (returnType, returnActor, returnLines);
-                } */
+                } else */
+                if (elements[1].GetNodeType() == "sep" && elements[2].GetNodeType() == "line")
+                { // If a separator and a line node follow the actor
+                    returnType = "line"; // Set the return type to line
+                    returnLines[i] = LineAnalysis(elements.GetRange(2, elements.Count - 2)); // Analyse all the lines into 1
+                    string returnActor = RequestNext(false, "actor", Int32.Parse(elements[0].value["id"])); // Get the actor from the database
+                    return (returnType, returnActor, returnLines); // Return the values
+                }
                 else
                 {
+                    foreach (TreeNode element in elements){
+                        Debug.Log(element.GetNodeType());
+                    }
                     throw new Exception("Analysis: Unable to progress after discovering actor in analysis.");
                 }
             }
-            else if (elements[0].GetNodeType() == "choice")
-            {
-                returnType = "choice";
-                TreeNode child = elements[0].GetChildren()[0];
-                returnLines[i] = LineAnalysis(elements.GetRange(1, elements.Count - 1));
-            }
             else if (elements[0].GetNodeType() == "jump")
             {
-                returnType = "true";
-                JumpToSection(elements[0]);
+                returnType = "true"; // Tell RequestNextLine that it needs to jump to another line
+                JumpToSection(elements[0]); // Get the line number of the section
                 return (returnType, null, null);
             }
             else if (elements[0].GetNodeType() == "if")
             {
                 returnType = "false";
-                int var1 = AnalyseIf(elements[2]);
+                int var1 = AnalyseIf(elements[2]); // Analyse the third element
                 if (elements[1].GetNodeType() == "assign")
-                {
+                { // If the element is getting assigned
                     if (elements[2].value["var"] == "choice")
-                    {
-                        choice = var1;
+                    { // If the third element was the variable choice
+                        choice = var1; // Set choice to the value of var1
                     }
                     else
                     {
-                        gameManager.SetVarValue(elements[2].value["var"], var1);
+                        gameManager.SetVarValue(elements[2].value["var"], var1); // Tell the game manager to assign the variable in the save data
                     }
                 }
                 else if (elements[1].GetNodeType() == "comp")
-                {
-                    int var2 = AnalyseIf(elements[3]);
-                    bool passed = EvalComparison(var1, elements[1].value["op"], var2);
+                { // If the variable is being compared
+                    int var2 = AnalyseIf(elements[3]); // Analyse the next variable
+                    bool passed = EvalComparison(var1, elements[1].value["op"], var2); // Compare the variables
                     if (passed)
-                    {
+                    { // If the comparison was true
                         if (elements[4].GetNodeType() == "jump")
-                        {
-                            lineNumber = dialogueSections[elements[4].value["section"]];
-                            returnType = "true";
+                        { // If the next node is a jump node
+                            JumpToSection(elements[4]); // Set the line number to the section mentioned
+                            returnType = "true"; // Tell RequestNextLine that it needs to jump to another line
                         }
                         else
                         {
@@ -549,6 +546,13 @@ public class DialogueInteraction : Interactable
                     }
                 }
                 return (returnType, null, null);
+            }
+            else if (elements[0].GetNodeType() == "choice")
+            {
+                returnType = "choice";
+                TreeNode child = elements[0].GetChildren()[0];
+                returnLines[i] = LineAnalysis(elements.GetRange(1, elements.Count - 1));
+                // Not fully implemented
             }
             else
             {
@@ -561,17 +565,17 @@ public class DialogueInteraction : Interactable
     private int AnalyseIf(TreeNode element)
     {
         if (element.GetNodeType() == "var")
-        {
+        { // If the node is variable
             if (element.value["var"] == "choice")
-            {
-                return choice;
+            { // If that variable is choice
+                return choice; // Return the value of choice
             }
             // Get value of variable
-            return gameManager.GetVarValue(element.value["var"]);
+            return gameManager.GetVarValue(element.value["var"]); // Request the game manager for the value of the variable from the save data
         }
         else if (element.GetNodeType() == "num")
-        {
-            return Int32.Parse(element.value["num"]);
+        { // If the element was a number
+            return int.Parse(element.value["num"]); // Cast the number
         }
         else
         {
@@ -580,23 +584,23 @@ public class DialogueInteraction : Interactable
     }
     private string LineAnalysis(List<TreeNode> lines)
     {
-        string returnLine = "";
+        string returnLine = ""; // Store the output line
         for (int j = 0; j < lines.Count; j++)
-        {
-            returnLine += RequestNext(true, "english", Int32.Parse(lines[j].value["id"])) + " ";
+        { // For every dialogue line
+            returnLine += RequestNext(true, "english", Int32.Parse(lines[j].value["id"])) + " "; // Request it from the database then append it the output
         }
-        returnLine = returnLine[..^1];
+        returnLine = returnLine[..^1]; // Remove the trailing space
         return returnLine;
     }
     private void JumpToSection(TreeNode jumpNode)
     {
-        string section = jumpNode.value["section"];
-        lineNumber = dialogueSections[section] + 1;
+        string section = jumpNode.value["section"]; // Get the line number of the section
+        lineNumber = dialogueSections[section] + 1; // Set the new line number
     }
     private bool EvalComparison(int variable, string op, int compareTo)
     {
         switch (op)
-        {
+        { // Compare based on the operator
             case "==":
                 return variable == compareTo;
             case ">=":

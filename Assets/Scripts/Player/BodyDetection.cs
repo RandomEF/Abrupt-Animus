@@ -5,11 +5,11 @@ public class BodyDetection : MonoBehaviour
     public PlayerMovement bodyScript;
 
     private void OnCollisionStay(Collision collision)
-    {
-        bodyScript.CollisionDetected(collision);
+    { // When the body touches something
+        bodyScript.CollisionDetected(collision); // Send all collision data to the movement script
     }
     private void OnCollisionExit(Collision collision)
-    {
-        bodyScript.CollisionDetected(collision);
+    { // When the body stops touching something
+        bodyScript.CollisionDetected(collision); // Send all collision data to the movement script
     }
 }

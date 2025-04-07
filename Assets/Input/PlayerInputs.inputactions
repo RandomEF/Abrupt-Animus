@@ -9,7 +9,7 @@
                     "name": "Jump",
                     "type": "Button",
                     "id": "8c394bd2-d213-41bb-ba1a-b4117ad7e49f",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -108,7 +108,16 @@
                     "name": "WeaponSlot3",
                     "type": "Button",
                     "id": "8fd43667-19d9-4240-896b-0a0346ff0984",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "WeaponSlot4",
+                    "type": "Button",
+                    "id": "d0388506-fb01-446b-be07-98c27674709b",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -117,7 +126,7 @@
                     "name": "Interact",
                     "type": "Button",
                     "id": "2ed0fe8d-b4b7-4970-96c1-66ab53315e2c",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -456,6 +465,28 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "WeaponSlot3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e74d6182-bca0-4633-8c8d-03bd4329b8ae",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KBM",
+                    "action": "WeaponSlot4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9dc056f3-d484-46f3-9bab-d7654d46e39e",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "WeaponSlot4",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

@@ -44,10 +44,3 @@ public class LevelLoading : MonoBehaviour
         ShowButton(); // Show the button
     }
 }
-
-        /*
-        if (progressBar == null){
-            progressBar = transform.GetChild(1).GetComponent<Slider>();
-            Debug.Log(progressBar);
-            Debug.Log(progressBar.value);
-        }*/

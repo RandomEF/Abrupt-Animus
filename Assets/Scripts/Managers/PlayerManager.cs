@@ -35,7 +35,6 @@ public class PlayerManager : MonoBehaviour
         inputs = new PlayerInputs(); // make a new set of player inputs
         inputs.Menu.Enable(); // Enabling only the Menu input map
         saveData = new SaveData(); // make a new empty saveData
-        //db = OpenDb(); // Open the scene information database
     }
 
     void Start()
@@ -44,7 +43,7 @@ public class PlayerManager : MonoBehaviour
         DontDestroyOnLoad(gameObject); // Since the game will start in the title screen, it makes sure that the player, manager, and all things attached are loaded and maintained across all scene loads
         //saveData.playerData.player = player;
         //SceneManager.sceneLoaded += ApplyData; 
-        SceneManager.sceneLoaded += SceneLoad; // ATtach the relevant functions to the new scene load
+        SceneManager.sceneLoaded += SceneLoad; // Attach the relevant functions to the new scene load
         //FetchReferences();
         //SceneManager.sceneLoaded += FetchPlayer;
     }
@@ -218,7 +217,6 @@ public class PlayerManager : MonoBehaviour
 
         Debug.Log("Requested canvas on scene load");
         menuManager.ChangeMenu(GetCanvasOpen(scene.name)); // Change the menu to the one that should be open
-        //Debug.Log(GetStartPos(scene.name));
         player.GetComponent<PlayerMovement>().movementState = PlayerMovement.PlayerMovementState.idle; // Give the player the ability to move
         ApplyData(); // Reload the save data
     }

@@ -2,10 +2,9 @@ using UnityEngine;
 
 public abstract class Interactable : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        gameObject.tag = "Interact";
+        gameObject.tag = "Interact"; // Mark the current object as an interactable
     }
-    abstract public void Interact();
+    abstract public void Interact(); // Define the required Interact method
 }

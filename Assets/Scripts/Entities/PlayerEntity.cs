@@ -15,10 +15,10 @@ public class PlayerEntity : Entity
     void Awake()
     {
         Addressables.LoadAssetAsync<AudioClip>("Assets/Audio/SFX/PlayerDeath.wav").Completed += (asyncOp) =>
-        {
+        { // Load the death sound effect
             if (asyncOp.Status == AsyncOperationStatus.Succeeded)
-            {
-                death = asyncOp.Result;
+            { // If succeeded
+                death = asyncOp.Result; // Assign the death sound
             }
             else
             {
@@ -44,23 +44,23 @@ public class PlayerEntity : Entity
 
     public void UpgradeHealth(float extra)
     {
-        MaxHealth += extra;
+        MaxHealth += extra; // Add onto the maximum health the added amount
     }
 
     private void Update()
     {
         if (run)
         {
-            slider.value = Health / MaxHealth;
-            healthText.text = Health.ToString();
+            slider.value = Health / MaxHealth; // Set the slider value to be the fraction of the health out of the maximum health
+            healthText.text = Health.ToString(); // Set the health text to the current remaining health
         }
     }
 
     public override void Kill()
     {
-        PlayerManager.Instance.inputs.Player.Disable();
-        PlayerManager.Instance.PlayerDeath();
-        MenuManager.Instance.ChangeMenu("Death");
-        AudioManager.Instance.PlaySFXClip(death, transform, 1f);
+        PlayerManager.Instance.inputs.Player.Disable(); // Disable the Player input map
+        PlayerManager.Instance.PlayerDeath(); // Tell the manager that the player has died
+        MenuManager.Instance.ChangeMenu("Death"); // Change to the death menu
+        AudioManager.Instance.PlaySFXClip(death, transform, 1f); // Play a death sound effect
     }
 }

@@ -102,130 +102,124 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         if (movementState != PlayerMovementState.dead)
-        {
-            velocity = player.linearVelocity;
+        { // If the player isn't dead
+            velocity = player.linearVelocity; // Store the current velocity for ease of use
             if (movementState == PlayerMovementState.wallrunning)
-            {
-                surfaceVelocity = Vector3.ProjectOnPlane(velocity, wallNormal);
+            { // If the player is wallrunning
+                surfaceVelocity = Vector3.ProjectOnPlane(velocity, wallNormal); // project the velocity on the wall
             }
             else
             {
-                surfaceVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
+                surfaceVelocity = Vector3.ProjectOnPlane(velocity, groundNormal); // project the velocity on the floor
             }
-            inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
-            bool crouching = CrouchControlState();
+            inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized; // Get the input for ease of use
+            bool crouching = CrouchControlState(); // Get the current crouching state
 
-            //isGrounded = GroundCheck();
-            SetMovementState(crouching);
+            SetMovementState(crouching); // Set the current movement state
 
             if (movementState == PlayerMovementState.wallrunning)
-            {
+            { // If wallrunning, disable all crouching states
                 holdCrouch = false;
                 toggleCrouch = false;
                 lastHoldCrouchState = false;
-                Wallrun();
+                Wallrun(); // Wallrunning specific function
             }
             else
             {
-                Crouch();
-                Movement();
+                Crouch(); // Decide if the player should change size
+                Movement(); // Generic movement function
             }
             if (inputDirection.magnitude == 0 && surfaceVelocity.magnitude < 0.1f)
-            {
-                velocity.x = 0;
-                velocity.z = 0;
+            { // If moving very slowly horizontally and with no input
+                player.linearVelocity = new Vector3(0, velocity.y, 0); // Reset the horizontal movement
             }
-            lastMovementState = movementState;
+            lastMovementState = movementState; // Store the current movement state
         }
         else
         {
-            player.linearVelocity = Vector3.zero;
+            player.linearVelocity = Vector3.zero; // freeze the player
         }
     }
     private void FixedUpdate()
     {
-        Gravity();
-        player.AddForce(movement, ForceMode.VelocityChange);
-        movement = Vector3.zero;
+        Gravity(); // Apply gravity
+        player.AddForce(movement, ForceMode.VelocityChange); // Apply total movement
+        movement = Vector3.zero; // Reset movement
     }
     private void SetMovementState(bool isCrouched)
     {
         if (stuckToWall)
-        {
+        { // If on the wall
             movementState = PlayerMovementState.wallrunning;
         }
         else if (surfaceVelocity.magnitude <= maxWalkSpeed && isCrouched && movementState != PlayerMovementState.sliding)
-        {
+        { // If crouching
             movementState = PlayerMovementState.crouching;
-            wasSliding = false;
+            wasSliding = false; // Not sliding
         }
         else if (surfaceVelocity.magnitude > maxWalkSpeed && isCrouched)
-        {
+        { // If sliding
             movementState = PlayerMovementState.sliding;
             if (!wasSliding)
-            {
-                wasSliding = true;
-                startedSliding = Time.time;
-                maxSlidingSpeed = surfaceVelocity.magnitude + 10f;
+            { // The player has just changed state
+                wasSliding = true; // Have started sliding
+                startedSliding = Time.time; // Set the current time
             }
             if (slideCapSet)
-            {
-                maxSlidingSpeed = surfaceVelocity.magnitude;
+            { // If the maximum sliding speed has been set
+                maxSlidingSpeed = surfaceVelocity.magnitude; // Set the current velocity as the limit
             }
         }
         else if ((surfaceVelocity.magnitude < preBoostVelocity - 1 && surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude < maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude <= maxWalkSpeed && !playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting))
-        {
+        { // If the player is walking, based on if they aren't supposed to be boosting or sprinting
             movementState = PlayerMovementState.walking;
-            wasSliding = false;
+            wasSliding = false; // Not sliding
         }
         else if ((surfaceVelocity.magnitude < preBoostVelocity - 1 && surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude < maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState == PlayerMovementState.boosting) || (surfaceVelocity.magnitude > minSpeed && surfaceVelocity.magnitude <= maxSprintSpeed && playerInputs.Player.Sprint.inProgress && movementState != PlayerMovementState.boosting))
-        {
+        { // If the player is walking based on if they aren't supposed to be boosting and are currently holding down the sprint key
             movementState = PlayerMovementState.sprinting;
-            wasSliding = false;
+            wasSliding = false; // Not sliding
         }
         else if (inputDirection.magnitude == 0)
-        {
+        { // If no input is held and not in any of the other states
             movementState = PlayerMovementState.idle;
-            wasSliding = false;
+            wasSliding = false; // Not sliding
         }
     }
     private void SetPlayerDimensions(float height)
-    { // , float radius
-        // float previousHeight = player.transform.localScale.y * playerCollider.height;
-        // player.transform.localScale = new Vector3(radius/playerCollider.radius, height/playerCollider.height, radius/playerCollider.radius);
-        // player.transform.position -= new Vector3(0, (previousHeight - height)/2, 0);
-        float previousHeight = playerCollider.height;
-        playerCollider.height = height;
-        player.transform.position -= new Vector3(0, (previousHeight - height) / 2, 0);
+    {
+        float previousHeight = playerCollider.height; // Store the current height
+        playerCollider.height = height; // Set the new height
+        player.transform.position -= new Vector3(0, (previousHeight - height) / 2, 0); // Work out the movement distance
     }
     private bool CrouchControlState()
     {
-        holdCrouch = playerInputs.Player.HoldCrouch.inProgress;
+        holdCrouch = playerInputs.Player.HoldCrouch.inProgress; // Get the status of the hold crouch
         if (playerInputs.Player.ToggleCrouch.triggered)
-        {
-            toggleCrouch = !toggleCrouch;
+        { // If the player just pressed the toggle crouch
+            toggleCrouch = !toggleCrouch; // Invert the toggle crouch
         }
         if (holdCrouch)
-        {
+        { // If the player is holding crouch
             lastHoldCrouchState = true;
             return true;
         }
         else
         {
             if (lastHoldCrouchState)
-            {
+            { // If the player just let go of crouching
                 toggleCrouch = false;
             }
-            lastHoldCrouchState = false;
+            lastHoldCrouchState = false; // Store for the next iteration
             return toggleCrouch;
         }
     }
     private void Crouch()
     {
         if (lastMovementState != movementState)
-        {
+        { // If the player wasn't previously crouching
             if (movementState == PlayerMovementState.crouching || movementState == PlayerMovementState.sliding)
-            {
+            { // If the player is supposed to be short
                 SetPlayerDimensions(crouchingHeight);
             }
             else
@@ -237,42 +231,41 @@ public class PlayerMovement : MonoBehaviour
     private void Gravity()
     {
         if (stuckToWall)
-        {
+        { // If wallrunning
             movement += Physics.gravity / -9.81f * gravity * gravityMultiplier * Time.fixedDeltaTime;
         }
         else if (!isGrounded)
-        {
+        { // If in the air
             movement += Physics.gravity / -9.81f * gravity * Time.fixedDeltaTime;
-            //player.AddForce((Physics.gravity / -9.81f * gravity) * Time.deltaTime, ForceMode.VelocityChange);
         }
     }
     private float FrictionMultiplier()
     {
         if (!isGrounded)
-        {
+        { // If in the air
             return 1 - drag;
         }
         else if (movementState == PlayerMovementState.boosting)
-        {
+        { // If boosting
             return 1 - friction / 10;
         }
         else if (movementState == PlayerMovementState.sliding)
-        {
+        { // If sliding
             return 1 - friction / 2;
         }
         else if (inputDirection.magnitude == 0)
-        {
-            return 1 - friction;//SpeedFunction(Mathf.Clamp(surfaceVelocity.magnitude, 0, 1.414f), 1, 1) - 1;
+        { // If the player has let go of the inputs
+            return 1 - friction;
         }
         else
-        {
+        { // Default friction
             return SpeedFunction(Mathf.Clamp(surfaceVelocity.magnitude, 0, 1f), 1, 1) - 1;
         }
     }
     private float MaxSpeed()
     {
         switch (movementState)
-        {
+        { // Return the correct max speed based on the current movement state
             case PlayerMovementState.crouching:
                 return maxCrouchSpeed;
             case PlayerMovementState.wallrunning:
@@ -293,52 +286,49 @@ public class PlayerMovement : MonoBehaviour
     }
     private float Pow4(float num)
     {
-        return num * num * num * num;
+        return num * num * num * num; // num ^ 4
     }
     private float SpeedFunction(float speed, float a, float b)
     {
-        return -(Pow4(speed / a) / (b * b * b)) + b;
+        return -(Pow4(speed / a) / (b * b * b)) + b; // The function for calculating the acceleration based on the speed
     }
     private float CalculateAccelerationMultiplier(Vector2? speed = null)
     {
-        if (speed == null)
+        if (speed == null) // no speed is supplied
         {
-            speed = surfaceVelocity;
+            speed = surfaceVelocity; // Use the surface velocity
         }
         float clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, MaxSpeed()).magnitude; // Stop the speed from overflowing
         float acceleration;
         switch (movementState)
         {
-            case PlayerMovementState.walking:
+            case PlayerMovementState.walking: // When the player is walking
                 acceleration = SpeedFunction(clampedMagnitude, 0.75f, 10);
                 break;
-            case PlayerMovementState.sprinting:
+            case PlayerMovementState.sprinting: // When the player is sprinting
                 acceleration = SpeedFunction(clampedMagnitude, 1, 15f);
                 break;
-            case PlayerMovementState.boosting:
+            case PlayerMovementState.boosting: // When the player is boosting
                 acceleration = 10f;
                 break;
-            case PlayerMovementState.crouching:
+            case PlayerMovementState.crouching: // When the player is crouching
                 acceleration = SpeedFunction(clampedMagnitude, 0.45f, 10f);
                 break;
-            case PlayerMovementState.sliding:
-                // clampedMagnitude = Vector2.ClampMagnitude((Vector2)speed, maxSprintSpeed).magnitude;
-                // acceleration = SpeedFunction(clampedMagnitude, 1.2f, 12.5f) - 35f;
-                // acceleration = -baseMovementAcceleration + 0.1f;
-                float currentTime = Time.time;
-                float difference = currentTime - startedSliding;
+            case PlayerMovementState.sliding: // When the player is sliding
+                float currentTime = Time.time; // Get the current time
+                float difference = currentTime - startedSliding; // Work out how long the player has been sliding
                 if (difference < 0.1)
-                {
-                    acceleration = -5 * difference + 20;
-                    slideCapSet = false;
+                { // If its still initial
+                    acceleration = -5 * difference + 20; // Apply a high acceleration
+                    slideCapSet = false; // The maximum sliding limit hasn't been set
                 }
                 else
                 {
-                    acceleration = 0.5f;
-                    slideCapSet = true;
+                    acceleration = 0.5f; // Apply a low acceleration
+                    slideCapSet = true; // The maximum sliding speed has been set
                 }
                 break;
-            case PlayerMovementState.wallrunning:
+            case PlayerMovementState.wallrunning: // When the player is wallrunning
                 acceleration = SpeedFunction(clampedMagnitude, 1.5f, 20f);
                 break;
             default:
@@ -354,7 +344,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y); // Get the target
         float alignment = Vector3.Dot(surfaceVelocity.normalized, target.normalized);
 
-        //* Above checked for jittering cause
         if (surfaceVelocity.magnitude > maxSpeed)
         { // If moving faster that the maximum speed
             acceleration *= surfaceVelocity.magnitude / maxSpeed; // Reduce the acceleration to counteract the speed overflow
@@ -382,6 +371,8 @@ public class PlayerMovement : MonoBehaviour
             direction.z = -surfaceVelocity.y/Time.deltaTime;
         }*/
     }
+
+    //todo rotate camera away from wall
     private void Wallrun()
     {
         Vector3 target = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y); // Get the intended movement globally
@@ -402,10 +393,10 @@ public class PlayerMovement : MonoBehaviour
 
         float maxSpeed = MaxSpeed(); // Get the maximum speed for that state
         float acceleration = CalculateAccelerationMultiplier(); // Get the acceleration for that state
-        Vector3 wallVelocity = Vector3.ProjectOnPlane(player.linearVelocity, wallNormal);
+        Vector3 wallVelocity = Vector3.ProjectOnPlane(player.linearVelocity, wallNormal); // Could probably change at some point to surface velocity
 
         if (wallVelocity.magnitude > maxSpeed)
-        { // 
+        { // If moving above the maximum wallrunning speed
             acceleration *= wallVelocity.magnitude / maxSpeed;
         }
         target = target * maxSpeed - wallVelocity; // Work out how much extra acceleration is needed
@@ -414,7 +405,6 @@ public class PlayerMovement : MonoBehaviour
         target -= target * FrictionMultiplier(); // take a percentage away from friction
         movement += target * Time.deltaTime; // add it to the movement for the next physics timestep
 
-        //todo rotate camera away from wall
     }
     private void Jump(InputAction.CallbackContext inputType)
     {
@@ -432,14 +422,14 @@ public class PlayerMovement : MonoBehaviour
         }*/
         Vector3 direction = Vector3.up * jumpForce;
         if (movementState == PlayerMovementState.wallrunning)
-        {
+        { // If wallrunning
             direction += wallNormal * jumpForce; // Make sure to push the player away from the wall
             direction = direction.normalized * jumpForce; // Push with a predetermined magnitude
             if (velocity.y < 0)
-            { // If moving done
+            { // If moving down
                 direction.y -= velocity.y; // Move the player back upwards
             }
-            movement += direction; // Add force for the next applyinng
+            movement += direction; // Add force for the next tick
             return;
         }
 
@@ -463,21 +453,20 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Boost(InputAction.CallbackContext inputType)
     {
-        movementState = PlayerMovementState.boosting;
-        preBoostVelocity = surfaceVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : surfaceVelocity.magnitude;
-        inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized;
+        movementState = PlayerMovementState.boosting; // Set state to boosting
+        preBoostVelocity = surfaceVelocity.magnitude < maxSprintSpeed ? maxSprintSpeed : surfaceVelocity.magnitude; // If the player is moving below the maximum sprint speed, set the calculated speed to the sprinting speed, otherwise set it to the current speed
+        inputDirection = playerInputs.Player.Movement.ReadValue<Vector2>().normalized; // Get the player's inputs
 
-        Vector3 boostMovement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * surfaceVelocity.magnitude * (boostMultiplier - 1);
-        maxBoostSpeed = velocity.magnitude + boostMovement.magnitude;
-        movement += boostMovement;
-        //player.AddForce(boostMovement, ForceMode.VelocityChange);
+        Vector3 boostMovement = player.rotation * new Vector3(inputDirection.x, 0, inputDirection.y) * preBoostVelocity * (boostMultiplier - 1); // Work out how much extra speed the player will gain
+        maxBoostSpeed = velocity.magnitude + boostMovement.magnitude; // Sets the maximum speed
+        movement += boostMovement; // Adds it to the movement
     }
     public void CollisionDetected(Collision collision)
     { // This function is called externally by the body
         if (collision.contacts.Length > 0)
-        {
-            bool onWall = false;
-            isGrounded = false;
+        { // If the player is touching something
+            bool onWall = false; // Track if the player is on a wall
+            isGrounded = false; // Track if the player is on a floor
             foreach (ContactPoint contact in collision.contacts)
             {
                 float slopeAngle = Vector3.Angle(contact.normal, Vector3.up); // Calculate the angle of the slope from the vertical
@@ -492,12 +481,11 @@ public class PlayerMovement : MonoBehaviour
                 else
                 { // On the wall
                     onWall = true;
-                    //stuckToWall = true;
                     wallNormal = contact.normal;
                 }
             }
             if (onWall && !isGrounded)
-            {
+            { // The player is wallrunning
                 movementState = PlayerMovementState.wallrunning;
                 stuckToWall = true;
             }
@@ -510,12 +498,4 @@ public class PlayerMovement : MonoBehaviour
             groundNormal = Vector3.up; // Reset groundNormal to default
         }
     }
-    /*
-    private bool GroundCheck(){
-        return Physics.CheckSphere(
-            new Vector3(player.transform.position.x, player.transform.position.y - groundDistance + (0.99f * player.transform.localScale.x * playerCollider.radius) - (player.transform.localScale.y * playerCollider.height)/2, player.transform.position.z),
-            player.transform.localScale.x * playerCollider.radius * 0.99f,
-            playerLayer);
-    }
-    */
 }

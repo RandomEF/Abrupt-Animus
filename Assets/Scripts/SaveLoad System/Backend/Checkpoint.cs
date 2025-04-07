@@ -6,14 +6,14 @@ public class Checkpoint : MonoBehaviour
 
     void Start()
     {
-        manager = PlayerManager.Instance;
+        manager = PlayerManager.Instance; // Get the game manager
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.tag == "Player")
-        {
-            manager.SaveGame("Auto");
+        { // If the player has touched the checkpoint
+            manager.SaveGame("Auto"); // Create an automatic save
             Debug.Log("Saved");
         }
     }

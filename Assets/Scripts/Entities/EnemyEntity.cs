@@ -117,16 +117,17 @@ public class EnemyEntity : Entity
             origin: rb.transform.position,
             direction: weapon.transform.GetChild(0).forward,
             hitInfo: out hitInfo,
-            maxDistance: DetectionRange
+            maxDistance: DetectionRange,
+            layerMask: ~LayerMask.GetMask("Weapon")
         ))
         {
             GameObject hit = hitInfo.collider.gameObject; // Grab the hit gameobject
-            Debug.Log($"Enemy {gameObject.GetInstanceID()} facing {hit.GetInstanceID()}");
+            Debug.Log($"Enemy {gameObject.GetInstanceID()} ({gameObject.name}) facing {hit.GetInstanceID()} ({hit.gameObject.name})");
             Entity entityClass = hit.GetComponent<Entity>(); // Get the entity class from the object
             if (entityClass != null)
             { // If the object is damageable
                 weaponScript.Fire(); // Fire the weapon
-                Debug.Log($"Enemy {gameObject.GetInstanceID()} fired its {weaponScript.WeaponType}");
+                Debug.Log($"Enemy {gameObject.GetInstanceID()} ({gameObject.name}) fired its {weaponScript.WeaponType}");
             }
         }
     }
@@ -201,7 +202,8 @@ public class EnemyEntity : Entity
                 origin: rb.transform.position,
                 direction: (searchingTarget - rb.transform.position).normalized,
                 hitInfo: out hitInfo,
-                maxDistance: DetectionRange
+                maxDistance: DetectionRange,
+                layerMask: playerLayer
             ))
             {
                 if ((hitInfo.point - rb.transform.position).magnitude < 1f)
@@ -280,9 +282,9 @@ public class EnemyEntity : Entity
     protected virtual void RotateToTarget(Transform target)
     {
         Vector3 targetDirection = target.transform.position - weapon.transform.position; // Get the direction from the weapon to the target
-        weapon.transform.rotation = Quaternion.Slerp(weapon.transform.rotation, Quaternion.Euler(targetDirection.normalized), RotationSpeed * Time.fixedDeltaTime);
+        //weapon.transform.rotation = Quaternion.Slerp(weapon.transform.rotation, Quaternion.LookRotation(targetDirection.normalized, Vector3.up), RotationSpeed * Time.fixedDeltaTime);
         targetDirection.y = 0;
-        Quaternion dirInQuaternion = Quaternion.Euler(targetDirection.normalized); // Rotation for the next step 
+        Quaternion dirInQuaternion = Quaternion.LookRotation(targetDirection.normalized, Vector3.up); // Rotation for the next step 
         rb.transform.rotation = Quaternion.Slerp(rb.transform.rotation, dirInQuaternion, RotationSpeed * Time.fixedDeltaTime); // Rotate the enemy so that the gun is in position to fire the player
     }
     /*
@@ -312,9 +314,9 @@ public class EnemyEntity : Entity
     */
     public override void Kill()
     {
-        weapon.GetComponent<Rigidbody>().useGravity = true; // CAllow the weapon to react normally
-        //weapon.GetComponent<Rigidbody>().detectCollisions = true;
-        //weapon.GetComponent<Rigidbody>().isKinematic = true;
+        weapon.GetComponent<Rigidbody>().useGravity = true; // Allow the weapon to react normally
+        weapon.GetComponent<Rigidbody>().detectCollisions = true; // Allow it to detect collision
+        weapon.GetComponent<Rigidbody>().isKinematic = true; // Allow it to be moved by the Physics system
         weapon.transform.SetParent(null); // Release the weapon
         PlayerManager.Instance.AddMerit(merit); // Award merit on death
         Destroy(gameObject); // Destroy self

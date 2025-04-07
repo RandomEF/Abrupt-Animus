@@ -26,6 +26,7 @@ public class Gun : Weapon
     public virtual void Reload()
     { // Reloads the clip
         int excess = ClipCapacity - AmmoInClip;
+        Debug.Log("Attempting reload");
         if (TotalAmmo >= excess)
         { // Check if there is enough ammo to fill the clip back to full
             TotalAmmo -= excess;

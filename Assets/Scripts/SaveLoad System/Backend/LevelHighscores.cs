@@ -19,7 +19,7 @@ public class HighscoreData
     public int deaths;
     public List<string> weaponsUsed;
     public HighscoreData()
-    {
+    { // Empty highscore data
         time = 0;
         enemiesKilled = 0;
         secretsFound = new bool[5];
@@ -27,7 +27,7 @@ public class HighscoreData
         weaponsUsed = new List<string>();
     }
     public HighscoreData(int time, int enemiesKilled, bool[] secretsFound, int deaths, List<string> weaponsUsed)
-    {
+    { // Fill in the highscore data
         this.time = time;
         this.enemiesKilled = enemiesKilled;
         this.secretsFound = secretsFound;
